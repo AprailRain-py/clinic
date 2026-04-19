@@ -33,6 +33,9 @@ yarn-error.log*
 # env files (can opt-in for committing if needed)
 .env*
 
+# Local SQLite DB (legacy from pre-Postgres dev)
+/data/
+
 # vercel
 .vercel
 

@@ -1,36 +1,89 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Clinic
 
-## Getting Started
+A small clinic prescription manager built with Next.js 15 (App Router), Auth.js v5,
+Drizzle ORM, and SQLite (better-sqlite3 with FTS5 for medicine search).
 
-First, run the development server:
+## Prerequisites
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+- Node.js 20+
+- [pnpm](https://pnpm.io/) 9+
+- A Google Cloud project for OAuth credentials (see below)
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Setup
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+1. Install dependencies:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+   ```bash
+   pnpm install
+   ```
 
-## Learn More
+2. Create an environment file and fill it in:
 
-To learn more about Next.js, take a look at the following resources:
+   ```bash
+   cp .env.example .env.local
+   ```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+   - `AUTH_SECRET` — generate with `openssl rand -base64 32`
+   - `AUTH_GOOGLE_ID` / `AUTH_GOOGLE_SECRET` — see the next section
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+3. Push the database schema (creates `./data/clinic.db`):
 
-## Deploy on Vercel
+   ```bash
+   pnpm db:push
+   ```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+4. Seed the medicines catalogue:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+   ```bash
+   pnpm db:seed
+   ```
+
+   If a data agent has produced `../data/data/medicines.json`, it will be imported
+   automatically. Otherwise a built-in fallback list (~100 common medicines across
+   allopathic, ayurvedic, and homeopathic systems) is used.
+
+5. Run the dev server:
+
+   ```bash
+   pnpm dev
+   ```
+
+   Open http://localhost:3000. You'll be redirected to `/login`.
+
+## Google OAuth setup
+
+Create OAuth credentials at the [Google Cloud Console](https://console.cloud.google.com/):
+
+1. **APIs & Services → OAuth consent screen**: configure for "External", add your
+   email as a test user.
+2. **APIs & Services → Credentials → Create Credentials → OAuth client ID**:
+   - Application type: **Web application**
+   - Authorised JavaScript origin: `http://localhost:3000`
+   - Authorised redirect URI: `http://localhost:3000/api/auth/callback/google`
+3. Copy the **Client ID** and **Client Secret** into `AUTH_GOOGLE_ID` /
+   `AUTH_GOOGLE_SECRET` in `.env.local`.
+
+## Useful scripts
+
+- `pnpm dev` — start the dev server
+- `pnpm build` — production build
+- `pnpm start` — start the production server
+- `pnpm lint` — lint
+- `pnpm db:push` — apply schema to SQLite (via drizzle-kit)
+- `pnpm db:seed` — (re)populate the `medicines` table + FTS index
+
+## Project layout
+
+- `src/app/` — App Router pages and API routes
+- `src/auth.ts` — Auth.js configuration (Google provider, database sessions)
+- `src/lib/db/schema.ts` — Drizzle schema (NextAuth + patients/visits/medicines)
+- `src/lib/db/client.ts` — better-sqlite3 client + FTS5 bootstrap
+- `src/components/prescription-editor/` — stub prescription editor (the real
+  standalone editor lives at `../prescription-editor/`; integration is a separate
+  task)
+- `scripts/seed-medicines.ts` — medicine catalogue seeder
+
+## Data
+
+SQLite file at `./data/clinic.db`. Safe to delete to reset everything; re-run
+`pnpm db:push` + `pnpm db:seed` afterwards.
