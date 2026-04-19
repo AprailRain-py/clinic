@@ -9,7 +9,9 @@ import {
   timestamp,
 } from "drizzle-orm/pg-core";
 import { createId } from "@paralleldrive/cuid2";
-import type { AdapterAccountType } from "@auth/core/adapters";
+
+// Inlined from @auth/core/adapters to avoid a hard dep on a transitive type.
+type AdapterAccountType = "oauth" | "oidc" | "email" | "webauthn";
 
 // ----- NextAuth tables (Postgres schema per @auth/drizzle-adapter docs) -----
 export const users = pgTable("user", {
