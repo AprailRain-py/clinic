@@ -41,6 +41,9 @@ importers:
       react-hook-form:
         specifier: ^7.72.1
         version: 7.72.1(react@19.2.4)
+      typescript:
+        specifier: ^5
+        version: 5.9.3
       use-debounce:
         specifier: ^10.1.1
         version: 10.1.1(react@19.2.4)
@@ -75,9 +78,6 @@ importers:
       tsx:
         specifier: ^4.19.2
         version: 4.21.0
-      typescript:
-        specifier: ^5
-        version: 5.9.3
 
 packages:
 
