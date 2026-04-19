@@ -38,7 +38,7 @@ export function AppShell({
             </span>
             <div className="leading-tight">
               <span className="font-display text-[22px] font-medium italic tracking-tight text-[--color-ink]">
-                Salve
+                Arthik
               </span>
               <span className="ml-1.5 text-xs tracking-wide text-[--color-muted]">
                 clinic
@@ -73,7 +73,7 @@ export function AppShell({
       <footer className="container-shell relative z-10 mt-16 border-t border-[--color-rule] py-8 text-xs text-[--color-muted]">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <span>
-            Salve clinic &middot; record of care &middot;{" "}
+            Arthik Clinic &middot; record of care &middot;{" "}
             <span className="font-mono">v0.1</span>
           </span>
           <span className="font-mono uppercase tracking-wider">

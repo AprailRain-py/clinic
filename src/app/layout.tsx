@@ -24,7 +24,7 @@ const mono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Salve — Clinic",
+  title: "Arthik Clinic",
   description: "Prescription & patient record keeping for modern clinics",
 };
 

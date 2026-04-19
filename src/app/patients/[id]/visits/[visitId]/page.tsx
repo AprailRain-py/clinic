@@ -93,7 +93,7 @@ export default async function VisitPage({
               <div>
                 <div className="eyebrow">Prescription · Rx</div>
                 <div className="mt-1 font-display text-[22px] italic">
-                  Salve <span className="not-italic text-[--color-muted]">· clinic</span>
+                  Arthik <span className="not-italic text-[--color-muted]">· clinic</span>
                 </div>
               </div>
               <div className="text-right">
@@ -209,7 +209,7 @@ export default async function VisitPage({
             <div className="mt-12 flex items-end justify-between border-t border-[--color-rule] pt-6">
               <div className="eyebrow">Signature</div>
               <div className="text-right">
-                <div className="font-display text-xl italic">Dr. {row.patient.name.split(" ").slice(-1)[0] ? "" : ""}Salve</div>
+                <div className="font-display text-xl italic">Arthik Clinic</div>
                 <div className="eyebrow mt-1">Attending physician</div>
               </div>
             </div>

@@ -45,7 +45,7 @@ export default async function LoginPage() {
               </svg>
               <span className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-[--color-rust]" />
             </span>
-            <span className="font-display text-[22px] font-medium italic">Salve</span>
+            <span className="font-display text-[22px] font-medium italic">Arthik Clinic</span>
           </div>
         </div>
 
@@ -108,7 +108,7 @@ export default async function LoginPage() {
           ) : null}
 
           <p className="mt-10 border-t border-[--color-rule] pt-6 text-xs text-[--color-muted]">
-            By continuing, you acknowledge that Salve stores a local record of
+            By continuing, you acknowledge that Arthik Clinic stores a local record of
             patient data for the purpose of continuity of care.
           </p>
         </div>
