@@ -36,6 +36,13 @@ yarn-error.log*
 # Local SQLite DB (legacy from pre-Postgres dev)
 /data/
 
+# Local prescription-photo storage (STORAGE_DRIVER=local)
+/uploads/
+
+# Playwright test artifacts
+/test-results/
+/playwright-report/
+
 # vercel
 .vercel
 

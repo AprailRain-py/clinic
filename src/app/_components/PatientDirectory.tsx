@@ -1,16 +1,43 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { PatientRow } from "@/lib/db/schema";
 import { ConditionChip } from "@/components/ConditionChip";
 import { CONDITIONS, parseConditions } from "@/lib/conditions";
 
 type Enriched = PatientRow & { visitCount: number; lastVisit: string };
 
-export function PatientDirectory({ patients }: { patients: Enriched[] }) {
+export function PatientDirectory({
+  patients,
+  autoFocusSearch = false,
+}: {
+  patients: Enriched[];
+  autoFocusSearch?: boolean;
+}) {
   const [q, setQ] = useState("");
   const [filter, setFilter] = useState<string | null>(null);
+  const searchRef = useRef<HTMLInputElement | null>(null);
+
+  useEffect(() => {
+    if (autoFocusSearch) searchRef.current?.focus();
+  }, [autoFocusSearch]);
+
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (e.key !== "/") return;
+      const target = e.target as HTMLElement | null;
+      const tag = target?.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA" || target?.isContentEditable) {
+        return;
+      }
+      e.preventDefault();
+      searchRef.current?.focus();
+      searchRef.current?.select();
+    }
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, []);
 
   const parsed = useMemo(
     () =>
@@ -48,10 +75,12 @@ export function PatientDirectory({ patients }: { patients: Enriched[] }) {
           <path d="m20 20-3-3" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
         </svg>
         <input
+          ref={searchRef}
           type="search"
           value={q}
           onChange={(e) => setQ(e.target.value)}
-          placeholder="Search by name or condition..."
+          placeholder="Search by name or condition. Press / to focus."
+          aria-label="Search patients"
           className="flex-1 bg-transparent py-2 text-sm text-[--color-ink] placeholder:text-[--color-muted-2] focus:outline-none"
         />
         {(q || filter) && (
@@ -95,7 +124,7 @@ export function PatientDirectory({ patients }: { patients: Enriched[] }) {
         {filtered.length === 0 ? (
           <div className="card flex flex-col items-center justify-center gap-2 p-12 text-center">
             <div className="eyebrow">No records</div>
-            <p className="font-display text-lg italic text-[--color-muted]">
+            <p className="text-[--color-muted]">
               {patients.length === 0
                 ? "The directory is empty."
                 : "No patients match that query."}

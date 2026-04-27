@@ -4,8 +4,12 @@ import { and, desc, eq } from "drizzle-orm";
 import { auth } from "@/auth";
 import { db } from "@/lib/db/client";
 import { patients, visits } from "@/lib/db/schema";
+import { deleteStaleDrafts } from "@/lib/db/drafts";
 import { ConditionChip } from "@/components/ConditionChip";
 import { parseConditions } from "@/lib/conditions";
+import { relativeDate } from "@/lib/format/date";
+
+export const dynamic = "force-dynamic";
 
 type Params = { id: string };
 
@@ -26,10 +30,17 @@ export default async function PatientPage({
 
   if (!patient) notFound();
 
+  // Opportunistic cleanup of the caller's stale drafts — never blocks the page.
+  try {
+    await deleteStaleDrafts(session.user.id);
+  } catch {
+    /* best effort */
+  }
+
   const visitRows = await db
     .select()
     .from(visits)
-    .where(eq(visits.patientId, patient.id))
+    .where(and(eq(visits.patientId, patient.id), eq(visits.status, "final")))
     .orderBy(desc(visits.visitDate));
 
   const conditions = parseConditions(patient.conditions);
@@ -91,7 +102,7 @@ export default async function PatientPage({
             {patient.notes ? (
               <div className="mt-5 max-w-xl border-l-2 border-[--color-pine] pl-4">
                 <div className="eyebrow mb-1">Chart note</div>
-                <p className="font-display text-[15px] italic leading-relaxed text-[--color-ink-soft]">
+                <p className="text-[15px] leading-relaxed text-[--color-ink-soft]">
                   {patient.notes}
                 </p>
               </div>
@@ -125,7 +136,7 @@ export default async function PatientPage({
           {visitRows.length === 0 ? (
             <div className="card flex flex-col items-center justify-center gap-3 p-12 text-center">
               <div className="eyebrow">Empty ledger</div>
-              <p className="font-display text-lg italic text-[--color-muted]">
+              <p className="text-[--color-muted]">
                 No visits logged yet.
               </p>
               <Link href={`/patients/${patient.id}/visits/new`} className="btn-primary mt-2">
@@ -143,7 +154,7 @@ export default async function PatientPage({
                 return (
                   <li key={month}>
                     <div className="mb-3 flex items-baseline gap-3">
-                      <span className="font-display text-[13px] italic text-[--color-muted]">
+                      <span className="eyebrow">
                         {label}
                       </span>
                       <span className="h-px flex-1 bg-[--color-rule]" />
@@ -170,7 +181,13 @@ export default async function PatientPage({
                             >
                               <div className="min-w-0 flex-1">
                                 <div className="flex items-baseline gap-3">
-                                  <span className="font-mono text-sm tabular-nums">
+                                  <span
+                                    className="text-sm"
+                                    title={v.visitDate}
+                                  >
+                                    {relativeDate(v.visitDate)}
+                                  </span>
+                                  <span className="font-mono text-xs tabular-nums text-[--color-muted]">
                                     {v.visitDate}
                                   </span>
                                   <span className="chip chip-pine">
@@ -178,9 +195,9 @@ export default async function PatientPage({
                                   </span>
                                 </div>
                                 {snippet ? (
-                                  <p className="mt-1.5 truncate font-display text-[14px] italic text-[--color-muted]">
-                                    &ldquo;{snippet}
-                                    {snippet.length >= 80 ? "..." : ""}&rdquo;
+                                  <p className="mt-1.5 truncate text-[14px] text-[--color-muted]">
+                                    {snippet}
+                                    {snippet.length >= 80 ? "…" : ""}
                                   </p>
                                 ) : null}
                               </div>

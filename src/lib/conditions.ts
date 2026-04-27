@@ -1,10 +1,11 @@
 export type Condition = {
   slug: string;
   label: string;
-  kind: "chronic" | "acute" | "mental" | "special";
+  kind: "chronic" | "acute" | "mental" | "special" | "intake";
 };
 
 export const CONDITIONS: Condition[] = [
+  { slug: "intake", label: "To diagnose", kind: "intake" },
   { slug: "diabetes", label: "Diabetes", kind: "chronic" },
   { slug: "hypertension", label: "Hypertension", kind: "chronic" },
   { slug: "heart-disease", label: "Heart disease", kind: "chronic" },

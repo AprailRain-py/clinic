@@ -1,7 +1,13 @@
-import { useState } from 'react';
-import { ALL_FREQUENCIES, FREQUENCY_LABELS, FREQUENCY_SHORT } from './frequency';
-import { SCHEDULE_PRESETS } from './presets';
-import type { Frequency, PrescriptionItem } from './types';
+'use client';
+
+import {
+  DOSING_FREQUENCIES,
+  DOSING_LABELS,
+  DOSING_SHORT,
+  DOSING_TIMES_PER_DAY,
+  MEAL_TIMING_LABELS,
+} from './dosing';
+import type { DosingFrequency, MealTiming, PrescriptionItem } from './types';
 
 type Props = {
   index: number;
@@ -10,41 +16,47 @@ type Props = {
   onRemove: (index: number) => void;
 };
 
-function matchPreset(item: PrescriptionItem): string {
-  for (const p of SCHEDULE_PRESETS) {
-    if (p.timesPerDay !== item.timesPerDay) continue;
-    if (p.frequency.length !== item.frequency.length) continue;
-    const a = [...p.frequency].sort().join(',');
-    const b = [...item.frequency].sort().join(',');
-    if (a === b) return p.code;
-  }
-  return '';
-}
+type MealTimingOption = {
+  value: MealTiming;
+  label: string;
+};
+
+const MEAL_TIMING_OPTIONS: MealTimingOption[] = [
+  { value: 'before_food', label: 'Before food' },
+  { value: 'after_food', label: 'After food' },
+  { value: 'empty_stomach', label: 'Empty stomach' },
+  { value: 'at_bedtime', label: 'At bedtime' },
+  { value: null, label: '—' },
+];
 
 export function MedicineRow({ index, item, onChange, onRemove }: Props) {
-  const [advanced, setAdvanced] = useState(false);
-  const activePreset = matchPreset(item);
+  const dosing = item.dosing ?? null;
+  const mealTiming = item.mealTiming ?? null;
+  const invalid = dosing === null;
 
-  const applyPreset = (code: string) => {
-    const p = SCHEDULE_PRESETS.find((x) => x.code === code);
-    if (!p) return;
-    onChange(index, { frequency: p.frequency, timesPerDay: p.timesPerDay });
-  };
-
-  const toggleFrequency = (f: Frequency) => {
-    const next = item.frequency.includes(f)
-      ? item.frequency.filter((x) => x !== f)
-      : [...item.frequency, f];
+  const handlePickDosing = (d: DosingFrequency) => {
     onChange(index, {
-      frequency: next,
-      timesPerDay: next.length > 0 ? next.length : item.timesPerDay,
+      dosing: d,
+      timesPerDay: DOSING_TIMES_PER_DAY[d],
+      // Clear legacy frequency on new writes.
+      frequency: [],
     });
   };
 
+  const handlePickMeal = (m: MealTiming) => {
+    onChange(index, { mealTiming: m });
+  };
+
   return (
-    <article className="pe-med-row">
+    <article
+      className="pe-med-row"
+      data-invalid={invalid ? 'true' : undefined}
+      aria-invalid={invalid ? 'true' : undefined}
+    >
       <header className="pe-med-head">
-        <span className="pe-med-index">{String(index + 1).padStart(2, '0')}</span>
+        <span className="pe-med-index">
+          {String(index + 1).padStart(2, '0')}
+        </span>
         <div className="pe-med-id">
           <div className="pe-med-name-row">
             <span className="pe-med-brand">{item.brand}</span>
@@ -61,39 +73,86 @@ export function MedicineRow({ index, item, onChange, onRemove }: Props) {
           type="button"
           className="pe-btn pe-btn-ghost"
           onClick={() => onRemove(index)}
-          aria-label="Remove medicine"
+          aria-label={`Remove ${item.brand}`}
           title="Remove"
         >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
-            <path d="M18 6 6 18" />
-            <path d="m6 6 12 12" />
+          <svg
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            aria-hidden
+          >
+            <path d="M3 6h18" />
+            <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+            <path d="M6 6v14a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V6" />
           </svg>
         </button>
       </header>
 
       <div className="pe-med-section">
         <div className="pe-med-section-head">
-          <span className="pe-eyebrow">Schedule</span>
-          {activePreset ? (
-            <span className="pe-sched-summary">
-              {SCHEDULE_PRESETS.find((p) => p.code === activePreset)?.label}
-            </span>
+          <span className="pe-eyebrow">Frequency</span>
+          {invalid ? (
+            <span className="pe-sched-required">Pick frequency</span>
           ) : (
-            <span className="pe-sched-summary pe-sched-custom">Custom</span>
+            <span className="pe-sched-summary">
+              {DOSING_LABELS[dosing]}
+              {' · '}
+              <span className="pe-sched-summary-count">
+                ×{item.timesPerDay}/day
+              </span>
+            </span>
           )}
         </div>
-        <div className="pe-preset-grid">
-          {SCHEDULE_PRESETS.map((p) => (
+        <div
+          className="pe-dosing-group"
+          role="radiogroup"
+          aria-label="Dosing frequency"
+        >
+          {DOSING_FREQUENCIES.map((d) => (
             <button
-              key={p.code}
+              key={d}
               type="button"
-              className="pe-preset"
-              data-active={activePreset === p.code}
-              onClick={() => applyPreset(p.code)}
-              title={p.description}
+              role="radio"
+              aria-checked={dosing === d}
+              className="pe-dosing-pill"
+              data-active={dosing === d}
+              onClick={() => handlePickDosing(d)}
+              title={DOSING_LABELS[d]}
             >
-              <span className="pe-preset-code">{p.code}</span>
-              <span className="pe-preset-label">{p.label}</span>
+              {DOSING_SHORT[d]}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="pe-med-section">
+        <div className="pe-med-section-head">
+          <span className="pe-eyebrow">With meal</span>
+          <span className="pe-sched-summary">
+            {mealTiming ? MEAL_TIMING_LABELS[mealTiming] : 'Unspecified'}
+          </span>
+        </div>
+        <div
+          className="pe-meal-group"
+          role="radiogroup"
+          aria-label="Meal timing"
+        >
+          {MEAL_TIMING_OPTIONS.map((opt) => (
+            <button
+              key={opt.value ?? 'none'}
+              type="button"
+              role="radio"
+              aria-checked={mealTiming === opt.value}
+              className="pe-meal-pill"
+              data-active={mealTiming === opt.value}
+              onClick={() => handlePickMeal(opt.value)}
+            >
+              {opt.label}
             </button>
           ))}
         </div>
@@ -108,11 +167,11 @@ export function MedicineRow({ index, item, onChange, onRemove }: Props) {
             min={1}
             max={365}
             value={item.durationDays}
-            onChange={(e) =>
-              onChange(index, {
-                durationDays: Math.max(1, Number(e.target.value) || 1),
-              })
-            }
+            onChange={(e) => {
+              const raw = Number(e.target.value) || 1;
+              const clamped = Math.max(1, Math.min(365, raw));
+              onChange(index, { durationDays: clamped });
+            }}
           />
         </label>
         <label className="pe-med-input pe-med-input-grow">
@@ -120,68 +179,14 @@ export function MedicineRow({ index, item, onChange, onRemove }: Props) {
           <input
             type="text"
             className="pe-input"
-            placeholder="e.g. after food, with warm water"
+            placeholder="e.g. with warm water"
             value={item.notes ?? ''}
-            onChange={(e) => onChange(index, { notes: e.target.value || undefined })}
+            onChange={(e) =>
+              onChange(index, { notes: e.target.value || undefined })
+            }
           />
         </label>
       </div>
-
-      {item.frequency.length > 0 ? (
-        <div className="pe-med-when">
-          <span className="pe-eyebrow">When</span>
-          <div className="pe-med-when-tags">
-            {item.frequency.map((f) => (
-              <span key={f} className="pe-when-tag">
-                {FREQUENCY_SHORT[f]}
-                <span className="pe-when-tag-full">{FREQUENCY_LABELS[f]}</span>
-              </span>
-            ))}
-          </div>
-        </div>
-      ) : null}
-
-      <button
-        type="button"
-        className="pe-advanced-toggle"
-        onClick={() => setAdvanced((v) => !v)}
-        aria-expanded={advanced}
-      >
-        <span className="pe-advanced-caret" data-open={advanced}>▸</span>
-        Advanced &mdash; override individual times
-      </button>
-      {advanced ? (
-        <div className="pe-advanced">
-          <div className="pe-chip-grid">
-            {ALL_FREQUENCIES.map((f) => (
-              <button
-                key={f}
-                type="button"
-                className="pe-chip"
-                data-active={item.frequency.includes(f)}
-                onClick={() => toggleFrequency(f)}
-              >
-                {FREQUENCY_LABELS[f]}
-              </button>
-            ))}
-          </div>
-          <label className="pe-med-input" style={{ marginTop: 12, maxWidth: 160 }}>
-            <span className="pe-eyebrow">Times / day</span>
-            <input
-              type="number"
-              className="pe-input"
-              min={1}
-              max={12}
-              value={item.timesPerDay}
-              onChange={(e) =>
-                onChange(index, {
-                  timesPerDay: Math.max(1, Number(e.target.value) || 1),
-                })
-              }
-            />
-          </label>
-        </div>
-      ) : null}
     </article>
   );
 }

@@ -1,0 +1,441 @@
+/* Print page styling: clean A4 layout, self-contained (no Tailwind tokens). */
+
+:root {
+  --rx-ink: #1a1a1a;
+  --rx-ink-soft: #3b3b3b;
+  --rx-muted: #6b6b6b;
+  --rx-rule: #cfcfcf;
+  --rx-rule-strong: #1a1a1a;
+  --rx-accent: #1e3a2b;
+  --rx-paper: #ffffff;
+  --rx-preview-bg: #f4f2ec;
+  --rx-warning-bg: #fdf5e6;
+  --rx-warning-border: #e2c37a;
+}
+
+.rx-print-root {
+  background: var(--rx-preview-bg);
+  min-height: 100vh;
+  padding: 28px 20px 80px;
+  font-family: "Instrument Sans", system-ui, -apple-system, Segoe UI, Roboto,
+    sans-serif;
+  color: var(--rx-ink);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Preview-only banner (hidden on paper) */
+.rx-preview-banner {
+  max-width: 210mm;
+  margin: 0 auto 14px;
+  padding: 12px 16px;
+  background: var(--rx-warning-bg);
+  border: 1px solid var(--rx-warning-border);
+  border-radius: 8px;
+  font-size: 13px;
+  color: #6b4a12;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.rx-preview-banner-link {
+  color: var(--rx-accent);
+  font-weight: 600;
+  text-decoration: underline;
+  white-space: nowrap;
+}
+.rx-preview-banner-link:hover {
+  text-decoration: underline;
+}
+/* Info variant (signature missing) — same palette as warning but tuned down. */
+.rx-preview-banner-info {
+  background: #fdf5e6;
+  border-color: var(--rx-warning-border);
+  color: #6b4a12;
+}
+/* Soft variant (profile incomplete) — neutral, non-blocking. */
+.rx-preview-banner-soft {
+  background: #f6f4ee;
+  border-color: var(--rx-rule);
+  color: var(--rx-ink-soft);
+  font-size: 12px;
+}
+
+.rx-preview-toolbar {
+  max-width: 210mm;
+  margin: 18px auto 0;
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  position: sticky;
+  bottom: 16px;
+  top: auto;
+  background: var(--rx-preview-bg);
+  padding: 10px 0;
+  z-index: 50;
+}
+.rx-toolbar-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--rx-rule);
+  background: var(--rx-paper);
+  color: var(--rx-ink);
+  font-size: 13px;
+  font-family: inherit;
+  cursor: pointer;
+  text-decoration: none;
+}
+.rx-toolbar-btn:hover {
+  border-color: var(--rx-ink);
+}
+.rx-toolbar-btn-primary {
+  background: var(--rx-ink);
+  color: #fff;
+  border-color: var(--rx-ink);
+}
+.rx-toolbar-spacer {
+  flex: 1;
+}
+.rx-toolbar-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  font-size: 12px;
+  color: var(--rx-ink);
+  cursor: pointer;
+  user-select: none;
+}
+.rx-toolbar-toggle input {
+  margin: 0;
+}
+
+/* ---- The sheet ---- */
+.rx-sheet {
+  width: 210mm;
+  min-height: 297mm;
+  margin: 0 auto;
+  padding: 18mm 15mm 20mm 15mm;
+  background: var(--rx-paper);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 10px 30px -12px rgba(0, 0, 0, 0.18);
+  display: flex;
+  flex-direction: column;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--rx-ink);
+}
+
+/* Letterhead */
+.rx-letterhead {
+  display: grid;
+  grid-template-columns: 1.3fr 1fr;
+  gap: 18px;
+  align-items: flex-start;
+  padding-bottom: 10px;
+}
+.rx-clinic-name {
+  font-family: "Fraunces", Georgia, serif;
+  font-size: 24px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--rx-ink);
+  line-height: 1.15;
+}
+.rx-doctor-line {
+  margin-top: 6px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 10px;
+}
+.rx-doctor-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--rx-ink);
+}
+.rx-doctor-degrees {
+  font-size: 12px;
+  color: var(--rx-ink-soft);
+  letter-spacing: 0.02em;
+}
+.rx-specialty {
+  margin-top: 2px;
+  font-size: 12px;
+  color: var(--rx-ink-soft);
+  font-style: italic;
+}
+.rx-reg {
+  margin-top: 3px;
+  font-size: 11px;
+  color: var(--rx-muted);
+}
+.rx-letterhead-meta {
+  text-align: right;
+  font-size: 11px;
+  color: var(--rx-ink-soft);
+  line-height: 1.45;
+}
+.rx-meta-line {
+  margin-bottom: 2px;
+}
+
+.rx-divider {
+  height: 2px;
+  background: var(--rx-rule-strong);
+  margin: 4px 0 10px;
+}
+
+/* Patient block */
+.rx-patient-block {
+  padding: 10px 0 12px;
+  border-bottom: 1px solid var(--rx-rule);
+  margin-bottom: 14px;
+}
+.rx-patient-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+}
+.rx-field {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.rx-field-grow { flex: 1 1 40%; }
+.rx-field-label {
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--rx-muted);
+}
+.rx-field-value {
+  font-size: 13px;
+  color: var(--rx-ink);
+  font-weight: 500;
+}
+.rx-field-mono {
+  font-family: ui-monospace, "JetBrains Mono", Menlo, monospace;
+  font-size: 12px;
+}
+
+/* Body */
+.rx-body {
+  display: grid;
+  grid-template-columns: 32px 1fr;
+  gap: 10px;
+  flex: 1;
+  min-height: 60mm;
+}
+.rx-symbol {
+  font-family: "Fraunces", Georgia, serif;
+  font-size: 48px;
+  line-height: 1;
+  color: var(--rx-accent);
+  font-weight: 600;
+  margin-top: -4px;
+}
+.rx-body-content {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.rx-empty {
+  font-style: italic;
+  color: var(--rx-muted);
+  padding: 12px 0;
+}
+
+.rx-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11.5px;
+}
+.rx-table thead th {
+  text-align: left;
+  font-weight: 600;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--rx-muted);
+  border-bottom: 1px solid var(--rx-rule-strong);
+  padding: 6px 6px;
+}
+.rx-table tbody td {
+  padding: 8px 6px;
+  border-bottom: 1px solid var(--rx-rule);
+  vertical-align: top;
+}
+.rx-col-num { width: 22px; color: var(--rx-muted); font-family: ui-monospace, monospace; }
+.rx-col-med { width: 30%; }
+.rx-col-comp { width: 22%; color: var(--rx-ink-soft); }
+.rx-col-freq { width: 16%; }
+.rx-col-dur { width: 10%; white-space: nowrap; }
+.rx-col-notes { width: 22%; color: var(--rx-ink-soft); font-style: italic; }
+.rx-med-brand {
+  font-weight: 600;
+  color: var(--rx-ink);
+  font-size: 12.5px;
+}
+.rx-med-meta {
+  font-size: 10.5px;
+  color: var(--rx-muted);
+  margin-top: 1px;
+}
+.rx-freq-tag {
+  display: inline-block;
+  padding: 1px 6px;
+  border-radius: 3px;
+  background: #eef2ec;
+  color: var(--rx-accent);
+  font-family: ui-monospace, monospace;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+.rx-freq-detail {
+  margin-top: 3px;
+  font-size: 10px;
+  color: var(--rx-muted);
+}
+
+.rx-notes {
+  margin-top: 4px;
+  padding: 10px 12px;
+  border-left: 2px solid var(--rx-accent);
+  background: #fafaf7;
+}
+.rx-notes-label {
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--rx-muted);
+  margin-bottom: 3px;
+}
+.rx-notes-body {
+  font-size: 12px;
+  color: var(--rx-ink);
+  white-space: pre-wrap;
+  margin: 0;
+}
+
+/* Attached photos */
+.rx-photos {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--rx-rule);
+}
+.rx-photos-label {
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--rx-muted);
+  margin-bottom: 6px;
+}
+.rx-photos-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 6px;
+}
+.rx-photo {
+  margin: 0;
+  border: 1px solid var(--rx-rule);
+  padding: 2px;
+  background: #fff;
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+.rx-photo img {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 90mm;
+  object-fit: contain;
+}
+
+/* Footer / signature */
+.rx-footer {
+  margin-top: 18mm;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 20px;
+  padding-top: 12px;
+}
+.rx-footer-left {
+  flex: 1;
+  max-width: 60%;
+}
+.rx-footer-hint {
+  font-size: 10px;
+  color: var(--rx-muted);
+  font-style: italic;
+}
+.rx-signature {
+  text-align: right;
+  min-width: 55mm;
+}
+.rx-signature-img {
+  height: 48px;
+  max-width: 55mm;
+  object-fit: contain;
+  display: inline-block;
+  margin-bottom: 2px;
+}
+.rx-signature-placeholder {
+  height: 48px;
+}
+.rx-signature-line {
+  border-top: 1px solid var(--rx-ink);
+  margin-top: 2px;
+  width: 100%;
+}
+.rx-signature-name {
+  margin-top: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--rx-ink);
+}
+.rx-signature-reg {
+  font-size: 10px;
+  color: var(--rx-muted);
+  margin-top: 1px;
+}
+
+/* ---- Print ---- */
+@page {
+  size: A4;
+  margin: 18mm 15mm 20mm 15mm;
+}
+
+@media print {
+  html, body {
+    background: #fff !important;
+  }
+  .rx-print-root {
+    background: #fff;
+    padding: 0;
+  }
+  .rx-preview-banner,
+  .rx-preview-toolbar {
+    display: none !important;
+  }
+  .rx-sheet {
+    width: auto;
+    min-height: auto;
+    margin: 0;
+    padding: 0;
+    box-shadow: none;
+  }
+  /* Avoid row breaks mid-medicine */
+  .rx-table tbody tr {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+  .rx-footer {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+}

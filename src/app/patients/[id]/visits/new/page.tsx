@@ -8,6 +8,8 @@ import { parseConditions } from "@/lib/conditions";
 import { ConditionChip } from "@/components/ConditionChip";
 import { NewVisitEditor } from "./NewVisitEditor";
 
+export const dynamic = "force-dynamic";
+
 export default async function NewVisitPage({
   params,
 }: {

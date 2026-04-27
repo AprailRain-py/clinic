@@ -11,6 +11,7 @@ type MedicineRow = {
   strength: string | null;
   manufacturer: string | null;
   system: string | null;
+  class: string | null;
 };
 
 export async function GET(req: Request) {
@@ -34,7 +35,7 @@ export async function GET(req: Request) {
 
   if (q.length > 0) {
     rows = (await sql<MedicineRow[]>`
-      SELECT id, brand, generic, composition, form, strength, manufacturer, system
+      SELECT id, brand, generic, composition, form, strength, manufacturer, system, class
       FROM medicines
       WHERE (brand ILIKE ${like} OR generic ILIKE ${like} OR composition ILIKE ${like})
         ${form ? sql`AND form = ${form}` : sql``}
@@ -47,7 +48,7 @@ export async function GET(req: Request) {
     `);
   } else {
     rows = (await sql<MedicineRow[]>`
-      SELECT id, brand, generic, composition, form, strength, manufacturer, system
+      SELECT id, brand, generic, composition, form, strength, manufacturer, system, class
       FROM medicines
       WHERE TRUE
         ${form ? sql`AND form = ${form}` : sql``}
@@ -67,6 +68,7 @@ export async function GET(req: Request) {
       strength: r.strength ?? undefined,
       manufacturer: r.manufacturer ?? undefined,
       system: r.system ?? undefined,
+      class: r.class ?? undefined,
     })),
   );
 }

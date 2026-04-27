@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX "medicines_user_dedupe_idx" ON "medicines" USING btree ("created_by_user_id",LOWER("brand"),COALESCE("strength", ''),COALESCE("form", ''),COALESCE("system", '')) WHERE "medicines"."created_by_user_id" IS NOT NULL;

@@ -52,17 +52,35 @@ export function AppShell({
               <div className="font-display text-sm text-[--color-ink]">{dateLabel}</div>
             </div>
             <div className="h-10 w-px bg-[--color-rule]" />
-            <div className="flex items-center gap-3">
+            <Link
+              href="/settings/profile"
+              title="Clinic & credentials"
+              className="group flex items-center gap-3 rounded-full px-1 py-1 transition hover:bg-[--color-card]/60 focus:bg-[--color-card]/60 focus:outline-none"
+            >
               <div className="hidden text-right leading-tight md:block">
                 <div className="eyebrow">Attending</div>
-                <div className="font-display text-sm text-[--color-ink]">
+                <div className="font-display text-sm text-[--color-ink] group-hover:text-[--color-pine]">
                   {user?.name ?? "Dev Doctor"}
                 </div>
               </div>
-              <span className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[--color-rule] bg-[--color-card] font-mono text-xs font-semibold text-[--color-pine]">
+              <span className="relative inline-flex h-10 w-10 items-center justify-center rounded-full border border-[--color-rule] bg-[--color-card] font-mono text-xs font-semibold text-[--color-pine] transition group-hover:border-[--color-pine]">
                 {initials || "DD"}
+                <span
+                  aria-hidden="true"
+                  className="absolute -bottom-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-[--color-paper] text-[--color-muted] opacity-0 transition group-hover:opacity-100"
+                >
+                  <svg viewBox="0 0 24 24" fill="none" className="h-2.5 w-2.5">
+                    <path
+                      d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5Z"
+                      stroke="currentColor"
+                      strokeWidth="1.8"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </span>
               </span>
-            </div>
+            </Link>
             {actions ? <div className="ml-1 flex items-center gap-2">{actions}</div> : null}
           </div>
         </div>

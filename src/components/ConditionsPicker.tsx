@@ -8,7 +8,17 @@ const KIND_TO_CLASS: Record<string, string> = {
   acute: "chip-ochre",
   mental: "chip-plum",
   special: "chip-sky",
+  intake: "chip-rust",
 };
+
+function toSlug(input: string): string {
+  return input
+    .trim()
+    .toLowerCase()
+    .replace(/['']/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+}
 
 export function ConditionsPicker({
   value,
@@ -28,10 +38,11 @@ export function ConditionsPicker({
     onChange(next);
   };
 
+  const customSlug = toSlug(custom);
+
   const addCustom = () => {
-    const slug = custom.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-");
-    if (!slug || set.has(slug)) return;
-    onChange([...value, slug]);
+    if (!customSlug || set.has(customSlug)) return;
+    onChange([...value, customSlug]);
     setCustom("");
   };
 
@@ -65,7 +76,17 @@ export function ConditionsPicker({
 
       <div className="flex items-end gap-2">
         <div className="flex-1">
-          <label className="eyebrow">Add custom</label>
+          <label className="eyebrow flex items-baseline justify-between">
+            <span>Add custom</span>
+            {customSlug ? (
+              <span
+                className="font-mono text-[10px] normal-case tracking-normal text-[--color-muted]"
+                data-testid="custom-slug-preview"
+              >
+                saved as: {customSlug}
+              </span>
+            ) : null}
+          </label>
           <input
             type="text"
             value={custom}
