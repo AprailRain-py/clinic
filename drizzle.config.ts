@@ -7,9 +7,16 @@ if (!url) {
   );
 }
 
+// DO managed Postgres requires SSL; local dev typically runs sslmode=disable.
+// drizzle-kit uses node-postgres, which defaults SSL off and would otherwise
+// hang on the SSL handshake against DO.
+const ssl = url.includes("sslmode=disable")
+  ? false
+  : { rejectUnauthorized: false };
+
 export default {
   schema: "./src/lib/db/schema.ts",
   out: "./drizzle",
   dialect: "postgresql",
-  dbCredentials: { url },
+  dbCredentials: { url, ssl },
 } satisfies Config;
