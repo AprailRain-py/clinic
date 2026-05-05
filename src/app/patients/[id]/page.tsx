@@ -83,6 +83,12 @@ export default async function PatientPage({
             </h1>
             <div className="mt-4 flex flex-wrap items-center gap-x-6 gap-y-2">
               <Fact label="Age" value={`${patient.age} yr`} />
+              {patient.gender ? (
+                <Fact label="Gender" value={formatGender(patient.gender)} />
+              ) : null}
+              {patient.mobile ? (
+                <Fact label="Mobile" value={patient.mobile} />
+              ) : null}
               {patient.dob ? <Fact label="DOB" value={patient.dob} /> : null}
               <Fact label="First visit" value={patient.firstVisitDate} />
               <Fact label="Total visits" value={`${visitRows.length}`} />
@@ -109,7 +115,22 @@ export default async function PatientPage({
             ) : null}
           </div>
 
-          <div className="flex items-start">
+          <div className="flex items-start gap-2">
+            <Link
+              href={`/patients/${patient.id}/edit`}
+              className="btn-ghost"
+            >
+              <svg viewBox="0 0 24 24" fill="none" className="h-4 w-4">
+                <path
+                  d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5Z"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+              Edit
+            </Link>
             <Link
               href={`/patients/${patient.id}/visits/new`}
               className="btn-primary"
@@ -221,6 +242,10 @@ export default async function PatientPage({
       </main>
     </div>
   );
+}
+
+function formatGender(g: string): string {
+  return g.charAt(0).toUpperCase() + g.slice(1);
 }
 
 function Fact({ label, value }: { label: string; value: string }) {

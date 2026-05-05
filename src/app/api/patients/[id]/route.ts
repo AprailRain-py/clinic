@@ -3,6 +3,7 @@ import { and, desc, eq } from "drizzle-orm";
 import { auth } from "@/auth";
 import { db } from "@/lib/db/client";
 import { patients, visits } from "@/lib/db/schema";
+import { patientUpdateSchema } from "@/lib/validators/patient";
 
 const NO_STORE_HEADERS = {
   "Cache-Control": "no-store, private",
@@ -29,6 +30,8 @@ export async function GET(
       name: patients.name,
       age: patients.age,
       dob: patients.dob,
+      gender: patients.gender,
+      mobile: patients.mobile,
       firstVisitDate: patients.firstVisitDate,
       conditions: patients.conditions,
       notes: patients.notes,
@@ -61,4 +64,64 @@ export async function GET(
     { patient, visits: patientVisits },
     { headers: NO_STORE_HEADERS }
   );
+}
+
+export async function PATCH(
+  req: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return NextResponse.json(
+      { error: "unauthorized" },
+      { status: 401, headers: NO_STORE_HEADERS }
+    );
+  }
+
+  const { id } = await params;
+
+  const json = await req.json().catch(() => null);
+  const parsed = patientUpdateSchema.safeParse(json);
+  if (!parsed.success) {
+    return NextResponse.json(
+      { error: "invalid", details: parsed.error.flatten() },
+      { status: 400, headers: NO_STORE_HEADERS }
+    );
+  }
+
+  const values = parsed.data;
+  const [updated] = await db
+    .update(patients)
+    .set({
+      name: values.name,
+      age: values.age,
+      dob: values.dob ?? null,
+      gender: values.gender,
+      mobile: values.mobile ?? null,
+      firstVisitDate: values.firstVisitDate,
+      conditions: JSON.stringify(values.conditions ?? []),
+      notes: values.notes ?? "",
+    })
+    .where(and(eq(patients.id, id), eq(patients.userId, session.user.id)))
+    .returning({
+      id: patients.id,
+      name: patients.name,
+      age: patients.age,
+      dob: patients.dob,
+      gender: patients.gender,
+      mobile: patients.mobile,
+      firstVisitDate: patients.firstVisitDate,
+      conditions: patients.conditions,
+      notes: patients.notes,
+      createdAt: patients.createdAt,
+    });
+
+  if (!updated) {
+    return NextResponse.json(
+      { error: "not_found" },
+      { status: 404, headers: NO_STORE_HEADERS }
+    );
+  }
+
+  return NextResponse.json(updated, { headers: NO_STORE_HEADERS });
 }

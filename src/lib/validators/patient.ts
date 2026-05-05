@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+export const genderEnum = z.enum(["male", "female", "other"]);
+
 export const patientCreateSchema = z.object({
   name: z.string().min(1, "Name is required").max(100),
   age: z.coerce.number().int().min(0).max(130),
@@ -8,6 +10,16 @@ export const patientCreateSchema = z.object({
     .max(32)
     .optional()
     .transform((v) => (v === "" ? undefined : v)),
+  gender: genderEnum,
+  mobile: z
+    .string()
+    .max(20)
+    .optional()
+    .transform((v) => (v == null || v.trim() === "" ? undefined : v.trim()))
+    .refine(
+      (v) => v === undefined || /^[0-9+\-\s]{7,20}$/.test(v),
+      "Mobile must be 7–20 digits (spaces, +, - allowed)",
+    ),
   firstVisitDate: z.string().min(1, "First visit date is required").max(32),
   conditions: z
     .array(z.string().min(1).max(200))
@@ -18,6 +30,11 @@ export const patientCreateSchema = z.object({
 });
 
 export type PatientCreateInput = z.infer<typeof patientCreateSchema>;
+
+// Edit re-uses every create field — same validation rules. firstVisitDate
+// stays editable so a typo on intake can be corrected.
+export const patientUpdateSchema = patientCreateSchema;
+export type PatientUpdateInput = z.infer<typeof patientUpdateSchema>;
 
 // Legacy frequency enum kept for backward-compat reads (old visits serialized
 // meal-timing into the frequency array). New writes use `dosing` + `mealTiming`.

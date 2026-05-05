@@ -73,6 +73,7 @@ export async function ensureSeedData(request: APIRequestContext): Promise<{
       data: {
         name: "Test Patient",
         age: 42,
+        gender: "other",
         firstVisitDate: today,
         conditions: [],
         notes: "",

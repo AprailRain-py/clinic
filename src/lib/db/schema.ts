@@ -80,6 +80,8 @@ export const patients = pgTable("patients", {
   name: text("name").notNull(),
   age: integer("age").notNull(),
   dob: text("dob"),
+  gender: text("gender"),
+  mobile: text("mobile"),
   firstVisitDate: text("first_visit_date").notNull(),
   // JSON-stringified string[] of condition slugs
   conditions: text("conditions"),
