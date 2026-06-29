@@ -27,7 +27,7 @@ export default function SymptomsStep({
         are flagged for the doctor automatically.
       </StepIntro>
 
-      <div className="space-y-2.5">
+      <div className="grid gap-2.5 lg:grid-cols-2 lg:items-start">
         {SYMPTOM_ITEMS.map((item) => {
           const on = getBool(item.key);
           return (

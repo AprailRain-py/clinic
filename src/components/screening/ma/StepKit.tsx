@@ -1,7 +1,8 @@
 "use client";
 
-import type { Band } from "@/lib/screening";
+import type { Band, FiredFactor } from "@/lib/screening";
 import type { Opt } from "@/lib/screening/oral-form";
+import { BandPill, CheckIcon } from "@/components/screening/primitives";
 
 // Shared premium building blocks for the MA capture steps. Mirrors the app's
 // own form aesthetic (card sections, eyebrow labels, .input-field inputs) so
@@ -225,4 +226,125 @@ export function LiveTriageBadge({
 
 export function StepIntro({ children }: { children: React.ReactNode }) {
   return <p className="mb-5 text-[15px] text-[--color-muted]">{children}</p>;
+}
+
+function avatarInitials(name: string): string {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return "?";
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
+
+// Sidebar: who this screening is for.
+export function SidebarPatient({
+  name,
+  age,
+  gender,
+}: {
+  name: string;
+  age: number;
+  gender: string;
+}) {
+  return (
+    <div className="card flex items-center gap-3 p-4">
+      <span className="flex h-10 w-10 flex-none items-center justify-center rounded-full bg-pine-soft font-mono text-sm font-semibold text-[--color-pine]">
+        {avatarInitials(name)}
+      </span>
+      <div className="min-w-0">
+        <div className="truncate font-medium text-[--color-ink]">{name}</div>
+        <div className="text-xs text-[--color-muted]">
+          {age} yr · {gender}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Sidebar: the live triage read-out as a standing panel (intelligence on screen
+// the whole time, not just a caption).
+export function LiveTriagePanel({
+  band,
+  score,
+  reasons,
+}: {
+  band: Band;
+  score: number;
+  reasons: FiredFactor[];
+}) {
+  const top = reasons.filter((r) => r.tier).slice(0, 4);
+  return (
+    <div className="card p-4">
+      <div className="eyebrow mb-3">Live triage</div>
+      <div className="flex items-center gap-2.5">
+        <BandPill band={band} />
+        <span className="font-mono text-sm text-[--color-muted]">score {score}</span>
+      </div>
+      {top.length > 0 ? (
+        <ul className="mt-3 space-y-1.5">
+          {top.map((r) => (
+            <li key={r.id} className="flex items-start gap-2 text-xs text-[--color-ink-soft]">
+              <span
+                className="mt-1 h-1.5 w-1.5 flex-none rounded-full"
+                style={{ background: r.tier === "RED" ? "var(--color-rust)" : "var(--color-ochre)" }}
+              />
+              {r.reason}
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="mt-2 text-xs text-[--color-muted]">No flags yet.</p>
+      )}
+    </div>
+  );
+}
+
+// Sidebar: vertical step progress.
+export function Stepper({
+  current,
+  total,
+  titles,
+}: {
+  current: number;
+  total: number;
+  titles: Record<number, string>;
+}) {
+  return (
+    <ol className="card p-2">
+      {Array.from({ length: total }, (_, i) => i + 1).map((n) => {
+        const done = n < current;
+        const active = n === current;
+        return (
+          <li
+            key={n}
+            className="flex items-center gap-3 rounded-lg px-2.5 py-2"
+            style={active ? { background: "var(--color-pine-soft)" } : undefined}
+          >
+            <span
+              className="flex h-6 w-6 flex-none items-center justify-center rounded-full font-mono text-[11px]"
+              style={
+                done || active
+                  ? { background: "var(--color-pine)", color: "var(--color-paper)" }
+                  : { border: "1px solid var(--color-rule)", color: "var(--color-muted-2)" }
+              }
+            >
+              {done ? <CheckIcon size={12} /> : n}
+            </span>
+            <span
+              className="text-sm"
+              style={{
+                color: active
+                  ? "var(--color-ink)"
+                  : done
+                    ? "var(--color-muted)"
+                    : "var(--color-muted-2)",
+                fontWeight: active ? 600 : 400,
+              }}
+            >
+              {titles[n]}
+            </span>
+          </li>
+        );
+      })}
+    </ol>
+  );
 }

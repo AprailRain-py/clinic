@@ -129,7 +129,7 @@ export default function QueuePage() {
 
   return (
     <AppShell>
-      <div className="mx-auto w-full max-w-3xl">
+      <div className="w-full">
       <div className="eyebrow">
         Review queue
       </div>
@@ -172,22 +172,15 @@ export default function QueuePage() {
         </SegTab>
       </div>
 
-      <div
-        style={{
-          marginTop: 16,
-          display: "flex",
-          flexDirection: "column",
-          gap: 11,
-        }}
-      >
-        {loading && <div className="scr-sub">Loading…</div>}
+      <div className="mt-4 grid gap-3 lg:grid-cols-2">
+        {loading && <div className="scr-sub lg:col-span-2">Loading…</div>}
         {error && (
-          <div className="scr-sub" style={{ color: "var(--hi-fg)" }}>
+          <div className="scr-sub lg:col-span-2" style={{ color: "var(--hi-fg)" }}>
             {error}
           </div>
         )}
         {!loading && !error && rows.length === 0 && (
-          <div className="card" style={{ padding: 18 }}>
+          <div className="card lg:col-span-2" style={{ padding: 18 }}>
             <div className="scr-sub">No screenings in this view.</div>
           </div>
         )}

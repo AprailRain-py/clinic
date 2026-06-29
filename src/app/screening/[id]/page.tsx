@@ -90,7 +90,7 @@ export default function CaseDetailPage() {
 
   return (
     <AppShell>
-      <div className="mx-auto w-full max-w-5xl">
+      <div className="w-full">
         <div className="mb-4">
           <Link href="/screening/queue" className="btn-link text-xs">
             <svg viewBox="0 0 24 24" fill="none" className="h-3.5 w-3.5">

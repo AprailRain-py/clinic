@@ -4,7 +4,12 @@ import { Suspense, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { AppShell } from "@/components/AppShell";
 import { PrimaryButton, ProgressBar } from "@/components/screening/primitives";
-import { LiveTriageBadge } from "@/components/screening/ma/StepKit";
+import {
+  LiveTriageBadge,
+  LiveTriagePanel,
+  SidebarPatient,
+  Stepper,
+} from "@/components/screening/ma/StepKit";
 import CaptureStep from "@/components/screening/ma/CaptureStep";
 import ConsentStep from "@/components/screening/ma/ConsentStep";
 import ExamStep from "@/components/screening/ma/ExamStep";
@@ -34,7 +39,7 @@ const TITLES: Record<number, string> = {
   4: "Symptoms",
   5: "Exam findings",
   6: "Capture photos",
-  7: "Review",
+  7: "Review & submit",
 };
 const FOOTER_LABELS: Record<number, string> = {
   1: "Continue",
@@ -48,7 +53,6 @@ const FOOTER_LABELS: Record<number, string> = {
 function NewScreeningFlow() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  // Launched from a patient record (?patientId=) → skip the patient step.
   const patientIdParam = searchParams.get("patientId");
   const firstStep = patientIdParam ? 2 : 1;
 
@@ -63,7 +67,6 @@ function NewScreeningFlow() {
   const [error, setError] = useState<string | null>(null);
   const [prefilling, setPrefilling] = useState<boolean>(!!patientIdParam);
 
-  // Prefill the patient when launched from a patient's record.
   useEffect(() => {
     if (!patientIdParam) return;
     let cancelled = false;
@@ -112,7 +115,6 @@ function NewScreeningFlow() {
     [patient, questionnaire],
   );
 
-  // ----- per-step gating -----
   const abhaOk = !questionnaire.abha || /^\d{14}$/.test(questionnaire.abha);
   const symptomsValid =
     !(questionnaire.symptoms.nonHealingLesion && questionnaire.symptoms.lesionDuration == null) &&
@@ -185,123 +187,127 @@ function NewScreeningFlow() {
   if (step === 8 && patient && result) {
     return (
       <AppShell>
-        <div className="mx-auto w-full max-w-xl">
-          <SubmittedStep patient={patient} band={result.band} score={result.score} onNew={reset} />
-        </div>
+        <SubmittedStep patient={patient} band={result.band} score={result.score} onNew={reset} />
       </AppShell>
     );
   }
 
-  const wide = step === 6;
+  const showSidebar = step >= 2; // patient context exists from consent onward
 
   return (
     <AppShell>
-      <div className={`mx-auto w-full ${wide ? "max-w-2xl" : "max-w-xl"}`}>
-        {/* step header */}
-        <div className="mb-5">
-          <div className="flex items-center gap-3">
-            <button type="button" onClick={back} className="btn-link text-xs" aria-label="Back">
-              <svg viewBox="0 0 24 24" fill="none" className="h-3.5 w-3.5">
-                <path d="m15 18-6-6 6-6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-              Back
-            </button>
-            <div className="font-display text-lg font-medium">{TITLES[step]}</div>
-            <div className="flex-1" />
-            <span className="font-mono text-xs text-[--color-muted]">
-              Step {step} of {TOTAL}
-            </span>
+      <div className="lg:grid lg:grid-cols-[300px_minmax(0,1fr)] lg:items-start lg:gap-10">
+        {/* desktop context sidebar */}
+        <aside className="hidden space-y-4 lg:sticky lg:top-6 lg:block">
+          {patient ? (
+            <SidebarPatient name={patient.name} age={patient.age} gender={patient.gender} />
+          ) : null}
+          {result && showSidebar && step >= 3 ? (
+            <LiveTriagePanel band={result.band} score={result.score} reasons={result.firedReasons} />
+          ) : null}
+          <Stepper current={step} total={TOTAL} titles={TITLES} />
+        </aside>
+
+        {/* main content */}
+        <div className="min-w-0">
+          <div className="mb-6">
+            <div className="flex items-center gap-3">
+              <button type="button" onClick={back} className="btn-link text-xs" aria-label="Back">
+                <svg viewBox="0 0 24 24" fill="none" className="h-3.5 w-3.5">
+                  <path d="m15 18-6-6 6-6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+                Back
+              </button>
+              <h1 className="font-display text-xl font-medium md:text-2xl">{TITLES[step]}</h1>
+              <div className="flex-1" />
+              <span className="font-mono text-xs text-[--color-muted] lg:hidden">
+                Step {step} of {TOTAL}
+              </span>
+            </div>
+            {/* compact progress + live read-out on tablet/mobile (sidebar carries it on desktop) */}
+            <div className="mt-3 lg:hidden">
+              <ProgressBar step={step} total={TOTAL} />
+            </div>
+            {result && step >= 3 ? (
+              <div className="mt-4 lg:hidden">
+                <LiveTriageBadge band={result.band} topReason={result.firedReasons.find((r) => r.tier)?.reason} />
+              </div>
+            ) : null}
           </div>
-          <div className="mt-3">
-            <ProgressBar step={step} total={TOTAL} />
-          </div>
-          {result && step >= 3 && step <= 7 ? (
-            <div className="mt-4">
-              <LiveTriageBadge
-                band={result.band}
-                topReason={result.firedReasons.find((r) => r.tier)?.reason}
-              />
+
+          {prefilling ? (
+            <div className="scr-sub">Loading patient…</div>
+          ) : step === 6 ? (
+            screeningId ? (
+              <div
+                className="flex flex-col overflow-hidden rounded-2xl border border-[--color-rule]"
+                style={{ height: "min(72vh, 640px)" }}
+              >
+                <CaptureStep
+                  screeningId={screeningId}
+                  views={views}
+                  captured={captured}
+                  setCaptured={setCaptured}
+                  onReview={() => setStep(7)}
+                />
+              </div>
+            ) : (
+              <div className="scr-sub">Screening draft missing — go back and re-confirm consent.</div>
+            )
+          ) : (
+            <div>
+              {step === 1 && (
+                <PatientStep
+                  onPicked={(p) => {
+                    setPatient(p);
+                    setStep(2);
+                  }}
+                />
+              )}
+              {step === 2 && patient && (
+                <ConsentStep patient={patient} questionnaire={questionnaire} setQuestionnaire={setQuestionnaire} />
+              )}
+              {step === 3 && (
+                <RiskStep questionnaire={questionnaire} setQuestionnaire={setQuestionnaire} />
+              )}
+              {step === 4 && (
+                <SymptomsStep
+                  questionnaire={questionnaire}
+                  setQuestionnaire={setQuestionnaire}
+                  firedReasons={result?.firedReasons ?? []}
+                />
+              )}
+              {step === 5 && (
+                <ExamStep questionnaire={questionnaire} setQuestionnaire={setQuestionnaire} />
+              )}
+              {step === 7 && patient && result && (
+                <ReviewStep
+                  patient={patient}
+                  questionnaire={questionnaire}
+                  result={result}
+                  views={views}
+                  captured={captured}
+                  capturedCount={capturedCount}
+                  totalViews={views.length}
+                />
+              )}
+            </div>
+          )}
+
+          {/* footer */}
+          {step !== 1 && step !== 6 && !prefilling ? (
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-end">
+              {error ? (
+                <p className="text-sm text-[--color-rust] sm:mr-auto">{error}</p>
+              ) : null}
+              <div className="w-full sm:w-60">
+                <PrimaryButton disabled={!canAdvance || busy} onClick={next}>
+                  {busy ? "Working…" : FOOTER_LABELS[step]}
+                </PrimaryButton>
+              </div>
             </div>
           ) : null}
         </div>
-
-        {/* body */}
-        {prefilling ? (
-          <div className="scr-sub">Loading patient…</div>
-        ) : step === 6 ? (
-          screeningId ? (
-            <div
-              className="flex flex-col overflow-hidden rounded-2xl border border-[--color-rule]"
-              style={{ height: "min(72vh, 600px)" }}
-            >
-              <CaptureStep
-                screeningId={screeningId}
-                views={views}
-                captured={captured}
-                setCaptured={setCaptured}
-                onReview={() => setStep(7)}
-              />
-            </div>
-          ) : (
-            <div className="scr-sub">
-              Screening draft missing — go back and re-confirm consent.
-            </div>
-          )
-        ) : (
-          <div>
-            {step === 1 && (
-              <PatientStep
-                onPicked={(p) => {
-                  setPatient(p);
-                  setStep(2);
-                }}
-              />
-            )}
-            {step === 2 && patient && (
-              <ConsentStep
-                patient={patient}
-                questionnaire={questionnaire}
-                setQuestionnaire={setQuestionnaire}
-              />
-            )}
-            {step === 3 && (
-              <RiskStep questionnaire={questionnaire} setQuestionnaire={setQuestionnaire} />
-            )}
-            {step === 4 && (
-              <SymptomsStep
-                questionnaire={questionnaire}
-                setQuestionnaire={setQuestionnaire}
-                firedReasons={result?.firedReasons ?? []}
-              />
-            )}
-            {step === 5 && (
-              <ExamStep questionnaire={questionnaire} setQuestionnaire={setQuestionnaire} />
-            )}
-            {step === 7 && patient && result && (
-              <ReviewStep
-                patient={patient}
-                questionnaire={questionnaire}
-                result={result}
-                capturedCount={capturedCount}
-                totalViews={views.length}
-              />
-            )}
-          </div>
-        )}
-
-        {/* footer (step 1 advances on patient pick; capture renders its own controls) */}
-        {step !== 1 && step !== 6 && !prefilling && (
-          <div className="mt-6">
-            {error && (
-              <div className="mb-3 text-sm" style={{ color: "var(--hi-fg)" }}>
-                {error}
-              </div>
-            )}
-            <PrimaryButton disabled={!canAdvance || busy} onClick={next}>
-              {busy ? "Working…" : FOOTER_LABELS[step]}
-            </PrimaryButton>
-          </div>
-        )}
       </div>
     </AppShell>
   );
