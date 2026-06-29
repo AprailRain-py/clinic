@@ -13,45 +13,82 @@ import type { OralRiskFactors } from "@/lib/validators/screening";
 import type { QuestionnaireStepProps } from "./types";
 import { ChoiceGroup, PickGroup, SegControl, Section, StepIntro } from "./StepKit";
 
-function SubField({ label, children }: { label: string; children: React.ReactNode }) {
+const UNIT_OPTS = [
+  { value: "years", label: "Years" },
+  { value: "months", label: "Months" },
+];
+
+function SubField({
+  label,
+  optional,
+  children,
+}: {
+  label: string;
+  optional?: boolean;
+  children: React.ReactNode;
+}) {
   return (
     <div className="mt-4">
-      <div className="eyebrow mb-2">{label}</div>
+      <div className="eyebrow mb-2">
+        {label}
+        {optional ? (
+          <span className="ml-2 normal-case tracking-normal text-[--color-muted-2]">optional</span>
+        ) : null}
+      </div>
       {children}
     </div>
   );
 }
 
-function Slider({
-  label,
-  value,
-  max,
+function numDigits(v: string): number | undefined {
+  const d = v.replace(/[^0-9]/g, "");
+  return d === "" ? undefined : Number(d);
+}
+
+// Per-day amount + duration (with a Years/Months unit so short-term use is
+// recordable). Top-level so the inputs keep focus while typing.
+function HabitDetail({
+  perDay,
+  perDayLabel,
+  onPerDay,
+  duration,
   unit,
-  onChange,
+  onDuration,
+  onUnit,
 }: {
-  label: string;
-  value: number;
-  max: number;
-  unit: string;
-  onChange: (v: number) => void;
+  perDay?: number;
+  perDayLabel: string;
+  onPerDay: (n: number | undefined) => void;
+  duration?: number;
+  unit?: string;
+  onDuration: (n: number | undefined) => void;
+  onUnit: (u: string) => void;
 }) {
   return (
-    <div>
-      <div className="flex items-baseline justify-between">
-        <span className="text-sm font-medium text-[--color-ink]">{label}</span>
-        <span className="font-mono text-sm font-semibold text-[--color-pine]">
-          {value} {unit}
-        </span>
-      </div>
-      <input
-        type="range"
-        min={0}
-        max={max}
-        value={value}
-        onChange={(e) => onChange(Number(e.target.value))}
-        className="mt-2.5 w-full"
-        style={{ accentColor: "var(--color-pine)", height: 6 }}
-      />
+    <div className="mt-5 grid gap-5 border-t border-[--color-rule] pt-5 sm:grid-cols-2">
+      <SubField label={perDayLabel} optional>
+        <input
+          className="input-field font-mono"
+          style={{ maxWidth: 160 }}
+          inputMode="numeric"
+          value={perDay ?? ""}
+          placeholder="e.g. 5"
+          onChange={(e) => onPerDay(numDigits(e.target.value))}
+        />
+      </SubField>
+      <SubField label="How long used" optional>
+        <div className="flex flex-wrap items-center gap-2">
+          <input
+            className="input-field font-mono"
+            style={{ width: 90 }}
+            inputMode="numeric"
+            value={duration ?? ""}
+            placeholder="6"
+            onChange={(e) => onDuration(numDigits(e.target.value))}
+          />
+          <SegControl options={UNIT_OPTS} value={unit ?? "years"} onChange={onUnit} ariaLabel="Duration unit" />
+        </div>
+      </SubField>
     </div>
   );
 }
@@ -74,7 +111,7 @@ export default function RiskStep({ questionnaire, setQuestionnaire }: Questionna
 
   return (
     <div className="space-y-4">
-      <StepIntro>Record the patient&rsquo;s habits — these feed the live triage above.</StepIntro>
+      <StepIntro>Record the patient&rsquo;s habits — these feed the live triage. Details are optional.</StepIntro>
 
       <Section title="Smokeless tobacco / areca">
         <SegControl
@@ -84,29 +121,37 @@ export default function RiskStep({ questionnaire, setQuestionnaire }: Questionna
           ariaLabel="Smokeless tobacco use"
         />
         {rf.smokelessStatus !== "never" ? (
-          <SubField label="Type">
+          <SubField label="Type" optional>
             <PickGroup
               options={SMOKELESS_TYPE_OPTIONS}
               values={rf.smokelessType}
               onToggle={(v) =>
                 patch({
-                  smokelessType: toggle(
-                    rf.smokelessType,
-                    v as OralRiskFactors["smokelessType"][number],
-                  ),
+                  smokelessType: toggle(rf.smokelessType, v as OralRiskFactors["smokelessType"][number]),
                 })
               }
             />
           </SubField>
         ) : null}
         {rf.smokelessStatus === "current" ? (
-          <SubField label="Quid-parking site">
-            <ChoiceGroup
-              options={QUID_SITE_OPTIONS}
-              value={rf.quidSite ?? ""}
-              onChange={(v) => patch({ quidSite: v as OralRiskFactors["quidSite"] })}
+          <>
+            <SubField label="Quid-parking site" optional>
+              <ChoiceGroup
+                options={QUID_SITE_OPTIONS}
+                value={rf.quidSite ?? ""}
+                onChange={(v) => patch({ quidSite: v as OralRiskFactors["quidSite"] })}
+              />
+            </SubField>
+            <HabitDetail
+              perDay={rf.smokelessPerDay}
+              perDayLabel="Times per day"
+              onPerDay={(n) => patch({ smokelessPerDay: n })}
+              duration={rf.smokelessYears}
+              unit={rf.smokelessUseUnit}
+              onDuration={(n) => patch({ smokelessYears: n })}
+              onUnit={(u) => patch({ smokelessUseUnit: u as OralRiskFactors["smokelessUseUnit"] })}
             />
-          </SubField>
+          </>
         ) : null}
       </Section>
 
@@ -118,26 +163,26 @@ export default function RiskStep({ questionnaire, setQuestionnaire }: Questionna
           ariaLabel="Smoking"
         />
         {rf.smokedStatus !== "never" ? (
-          <SubField label="Type">
+          <SubField label="Type" optional>
             <PickGroup
               options={SMOKED_TYPE_OPTIONS}
               values={rf.smokedType}
               onToggle={(v) =>
-                patch({
-                  smokedType: toggle(
-                    rf.smokedType,
-                    v as OralRiskFactors["smokedType"][number],
-                  ),
-                })
+                patch({ smokedType: toggle(rf.smokedType, v as OralRiskFactors["smokedType"][number]) })
               }
             />
           </SubField>
         ) : null}
         {rf.smokedStatus === "current" ? (
-          <div className="mt-5 space-y-5 border-t border-[--color-rule] pt-5">
-            <Slider label="Years of use" value={rf.smokedYears ?? 0} max={50} unit="yrs" onChange={(v) => patch({ smokedYears: v })} />
-            <Slider label="Quantity per day" value={rf.smokedPerDay ?? 0} max={40} unit="/ day" onChange={(v) => patch({ smokedPerDay: v })} />
-          </div>
+          <HabitDetail
+            perDay={rf.smokedPerDay}
+            perDayLabel="Cigarettes / bidis per day"
+            onPerDay={(n) => patch({ smokedPerDay: n })}
+            duration={rf.smokedYears}
+            unit={rf.smokedUseUnit}
+            onDuration={(n) => patch({ smokedYears: n })}
+            onUnit={(u) => patch({ smokedUseUnit: u as OralRiskFactors["smokedUseUnit"] })}
+          />
         ) : null}
       </Section>
 

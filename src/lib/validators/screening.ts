@@ -83,11 +83,15 @@ export const oralRiskFactorsSchema = z.object({
   smokedStatus: habitStatusEnum.default("never"),
   smokedType: z.array(smokedTypeEnum).default([]),
   smokedPerDay: z.coerce.number().int().min(0).max(100).optional(),
-  smokedYears: z.coerce.number().int().min(0).max(90).optional(),
+  // Duration value is in `smokedUseUnit` (years by default, or months for
+  // short-term users). All habit-detail fields are optional/informational.
+  smokedYears: z.coerce.number().int().min(0).max(600).optional(),
+  smokedUseUnit: z.enum(["years", "months"]).optional(),
   smokelessStatus: habitStatusEnum.default("never"),
   smokelessType: z.array(smokelessTypeEnum).default([]),
   smokelessPerDay: z.coerce.number().int().min(0).max(100).optional(),
-  smokelessYears: z.coerce.number().int().min(0).max(90).optional(),
+  smokelessYears: z.coerce.number().int().min(0).max(600).optional(),
+  smokelessUseUnit: z.enum(["years", "months"]).optional(),
   quidSite: quidSiteEnum.optional(),
   paan: paanEnum.default("never"),
   paanTobaccoAdded: z.boolean().default(false),

@@ -267,37 +267,22 @@ export function DecisionPanel({
       )}
 
       <div>
-        <div className="eyebrow" style={{ marginBottom: 10 }}>
+        <div className="eyebrow" style={{ marginBottom: 8 }}>
           Clinical note
+          <span className="ml-2 font-mono text-[10px] normal-case tracking-normal text-[--color-muted-2]">
+            optional
+          </span>
         </div>
         <textarea
           className="field"
           value={note}
           onChange={(e) => setNote(e.target.value)}
-          placeholder="Add a structured note for the referral…"
+          placeholder="Type your note here…"
           style={{ minHeight: 96, resize: "none", lineHeight: 1.5 }}
         />
-      </div>
-
-      <div>
-        <div className="eyebrow" style={{ marginBottom: 10 }}>
-          Referral note preview
-        </div>
-        <pre
-          style={{
-            margin: 0,
-            background: "var(--ink)",
-            color: "#cfe9e3",
-            borderRadius: 13,
-            padding: 16,
-            font: "500 12px var(--ip-mono), monospace",
-            lineHeight: 1.6,
-            whiteSpace: "pre-wrap",
-            wordBreak: "break-word",
-          }}
-        >
-          {referralNote}
-        </pre>
+        <p className="mt-2 text-xs text-[--color-muted]">
+          A referral note is generated automatically from the decision when you save.
+        </p>
       </div>
 
       {error && (

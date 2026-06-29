@@ -172,7 +172,7 @@ export default function CaptureStep({
   return (
     <div style={{ flex: 1, display: "flex", flexDirection: "column", minHeight: 0, background: "#0d1716" }}>
       {/* guided hint card */}
-      <div style={{ flex: "none", background: "#fff", padding: "0 16px 14px" }}>
+      <div style={{ flex: "none", background: "#fff", padding: "14px 16px" }}>
         <div
           style={{
             background: "var(--tl-50)",

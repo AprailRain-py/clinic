@@ -129,16 +129,16 @@ export type CaptureView = {
 };
 
 export const ORAL_VIEWS: CaptureView[] = [
-  { id: "anterior_open", label: "Lips & anterior, mouth open", hint: "Relax lips, open wide, even light." },
-  { id: "buccal_right", label: "Right cheek (buccal mucosa)", hint: "Retract the right cheek with a spatula." },
-  { id: "buccal_left", label: "Left cheek (buccal mucosa)", hint: "Retract the left cheek with a spatula." },
-  { id: "tongue_dorsum", label: "Tongue — top (dorsum)", hint: "Ask patient to stick the tongue straight out." },
-  { id: "tongue_lateral", label: "Tongue — side borders", hint: "Hold the tip with gauze; show both sides." },
-  { id: "ventral_floor", label: "Under tongue & floor of mouth", hint: "Lift the tongue to the palate." },
-  { id: "palate", label: "Hard & soft palate", hint: "Tilt the head back; say 'aah'." },
+  { id: "anterior_open", label: "Front of the mouth", hint: "Ask the patient to open wide and relax the lips." },
+  { id: "buccal_right", label: "Inside the right cheek", hint: "Gently pull the right cheek outward." },
+  { id: "buccal_left", label: "Inside the left cheek", hint: "Gently pull the left cheek outward." },
+  { id: "tongue_dorsum", label: "Top of the tongue", hint: "Ask the patient to stick the tongue straight out." },
+  { id: "tongue_lateral", label: "Sides of the tongue", hint: "Hold the tongue tip with gauze and turn it to each side." },
+  { id: "ventral_floor", label: "Under the tongue", hint: "Ask the patient to lift the tongue to the roof of the mouth." },
+  { id: "palate", label: "Roof of the mouth", hint: "Tilt the head back and ask the patient to say “aah”." },
 ];
 
 export const CONDITIONAL_VIEWS: CaptureView[] = [
-  { id: "lesion_closeup", label: "Lesion close-up", hint: "Fill the frame with the lesion + a ruler/scale.", conditional: "lesion" },
-  { id: "quid_site_closeup", label: "Quid-parking site", hint: "Photograph the quid site even if it looks normal.", conditional: "quid" },
+  { id: "lesion_closeup", label: "Close-up of the problem area", hint: "Fill the frame with the spot. Place a ruler or coin next to it for size.", conditional: "lesion" },
+  { id: "quid_site_closeup", label: "Where tobacco is kept", hint: "Photograph the spot where the patient holds tobacco or paan — even if it looks normal.", conditional: "quid" },
 ];
