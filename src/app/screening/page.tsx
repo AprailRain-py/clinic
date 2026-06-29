@@ -1,113 +1,71 @@
 import Link from "next/link";
+import { AppShell } from "@/components/AppShell";
 
-// MA home — entry point into the oral screening capture flow. Static greeting +
-// a prominent "Start a screening" card, a couple of "Today" stat tiles
-// (placeholder values) and a quiet link through to the doctor's queue.
+// Screening landing — lives inside the app shell. Two entry points: start a new
+// screening (assistant) or open the doctor's review queue.
 export default function ScreeningHomePage() {
   return (
-    <div style={{ minHeight: "100dvh", display: "flex", justifyContent: "center", background: "var(--screen)" }}>
-      <div style={{ width: "100%", maxWidth: 440, display: "flex", flexDirection: "column" }}>
-        <div style={{ padding: "28px 22px 6px" }}>
-          <div className="eyebrow" style={{ color: "var(--tl)" }}>
-            Screening
-          </div>
-          <div style={{ font: "600 27px var(--ip-sans), sans-serif", color: "var(--ink)", marginTop: 7 }}>
-            Good morning
-          </div>
-          <div style={{ font: "400 15px var(--ip-sans), sans-serif", color: "var(--muted)", marginTop: 3 }}>
-            Oral cancer screening
-          </div>
-        </div>
+    <AppShell>
+      <section className="reveal mb-8">
+        <div className="eyebrow">Cancer screening</div>
+        <h1 className="font-display mt-1 text-2xl font-medium tracking-tight">
+          Screening
+        </h1>
+        <p className="mt-2 max-w-xl text-[15px] text-[--color-muted]">
+          Oral cancer screening — a guided questionnaire and photo capture that
+          a medical assistant completes, then a doctor reviews and triages.
+        </p>
+      </section>
 
-        <div style={{ padding: "16px 18px 24px" }}>
-          {/* Start card */}
-          <Link
-            href="/screening/new"
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              gap: 18,
-              textDecoration: "none",
-              background: "var(--tl)",
-              borderRadius: 22,
-              padding: 24,
-              color: "#fff",
-              boxShadow: "0 14px 30px -10px rgba(15,118,110,.55)",
-            }}
-          >
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-              <div
-                style={{
-                  width: 48,
-                  height: 48,
-                  borderRadius: 15,
-                  background: "rgba(255,255,255,.18)",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  color: "#fff",
-                }}
-              >
-                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
-                  <line x1="12" y1="5" x2="12" y2="19" />
-                  <line x1="5" y1="12" x2="19" y2="12" />
-                </svg>
-              </div>
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.8)" strokeWidth="2" strokeLinecap="round">
-                <polyline points="9 6 15 12 9 18" />
-              </svg>
-            </div>
-            <div>
-              <div style={{ font: "600 22px var(--ip-sans), sans-serif" }}>Start a screening</div>
-              <div style={{ opacity: 0.86, font: "400 14px var(--ip-sans), sans-serif", marginTop: 3 }}>
-                Oral pathway · guided photo capture
-              </div>
-            </div>
-          </Link>
-
-          {/* Today stats (placeholder) */}
-          <div className="eyebrow" style={{ marginTop: 24, color: "var(--faint)" }}>
-            Today
-          </div>
-          <div style={{ display: "flex", gap: 12, marginTop: 12 }}>
-            <div className="card" style={{ flex: 1, padding: 16 }}>
-              <div style={{ font: "600 28px var(--ip-sans), sans-serif", color: "var(--ink)" }}>0</div>
-              <div style={{ font: "400 13px var(--ip-sans), sans-serif", color: "var(--muted)", marginTop: 2 }}>
-                Captured
-              </div>
-            </div>
-            <div className="card" style={{ flex: 1, padding: 16 }}>
-              <div style={{ font: "600 28px var(--ip-sans), sans-serif", color: "var(--md-fg)" }}>0</div>
-              <div style={{ font: "400 13px var(--ip-sans), sans-serif", color: "var(--muted)", marginTop: 2 }}>
-                Awaiting review
-              </div>
-            </div>
-          </div>
-
-          {/* Doctor queue link */}
-          <Link
-            href="/screening/queue"
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              marginTop: 14,
-              padding: "14px 16px",
-              borderRadius: 14,
-              textDecoration: "none",
-              background: "#fff",
-              border: "1px solid var(--line)",
-            }}
-          >
-            <span style={{ font: "500 14px var(--ip-sans), sans-serif", color: "var(--ink-2)" }}>
-              Open doctor&rsquo;s queue
-            </span>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--faint)" strokeWidth="2" strokeLinecap="round">
-              <polyline points="9 6 15 12 9 18" />
+      <div className="grid gap-4 md:grid-cols-2">
+        <Link
+          href="/screening/new"
+          className="card group flex flex-col gap-4 p-6 transition hover:border-[--color-pine]"
+        >
+          <span className="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-[--color-pine] text-[--color-paper]">
+            <svg viewBox="0 0 24 24" fill="none" className="h-5 w-5">
+              <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
             </svg>
-          </Link>
-        </div>
+          </span>
+          <div>
+            <div className="font-display text-lg font-medium">Start a screening</div>
+            <p className="mt-1 text-sm text-[--color-muted]">
+              Capture an oral cancer screening for a patient — risk factors,
+              symptoms and guided photos.
+            </p>
+          </div>
+          <span className="btn-link mt-1 text-xs">
+            Begin
+            <svg viewBox="0 0 24 24" fill="none" className="h-3 w-3">
+              <path d="M5 12h14M13 5l7 7-7 7" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+            </svg>
+          </span>
+        </Link>
+
+        <Link
+          href="/screening/queue"
+          className="card group flex flex-col gap-4 p-6 transition hover:border-[--color-pine]"
+        >
+          <span className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-[--color-rule] bg-[--color-card] text-[--color-pine]">
+            <svg viewBox="0 0 24 24" fill="none" className="h-5 w-5">
+              <path d="M4 6h16M4 12h16M4 18h10" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+            </svg>
+          </span>
+          <div>
+            <div className="font-display text-lg font-medium">Review queue</div>
+            <p className="mt-1 text-sm text-[--color-muted]">
+              Doctor worklist — pending screenings triaged High → Low with the
+              reasons that fired.
+            </p>
+          </div>
+          <span className="btn-link mt-1 text-xs">
+            Open queue
+            <svg viewBox="0 0 24 24" fill="none" className="h-3 w-3">
+              <path d="M5 12h14M13 5l7 7-7 7" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+            </svg>
+          </span>
+        </Link>
       </div>
-    </div>
+    </AppShell>
   );
 }

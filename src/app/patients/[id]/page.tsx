@@ -3,7 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { and, desc, eq } from "drizzle-orm";
 import { auth } from "@/auth";
 import { db } from "@/lib/db/client";
-import { patients, visits } from "@/lib/db/schema";
+import { patients, screenings, visits } from "@/lib/db/schema";
 import { deleteStaleDrafts } from "@/lib/db/drafts";
 import { ConditionChip } from "@/components/ConditionChip";
 import { parseConditions } from "@/lib/conditions";
@@ -42,6 +42,22 @@ export default async function PatientPage({
     .from(visits)
     .where(and(eq(visits.patientId, patient.id), eq(visits.status, "final")))
     .orderBy(desc(visits.visitDate));
+
+  const screeningRows = await db
+    .select({
+      id: screenings.id,
+      screeningDate: screenings.screeningDate,
+      pathway: screenings.pathway,
+      riskBand: screenings.riskBand,
+      riskScore: screenings.riskScore,
+      reviewStatus: screenings.reviewStatus,
+      createdAt: screenings.createdAt,
+    })
+    .from(screenings)
+    .where(
+      and(eq(screenings.patientId, patient.id), eq(screenings.status, "final")),
+    )
+    .orderBy(desc(screenings.createdAt));
 
   const conditions = parseConditions(patient.conditions);
   const initials = (patient.name.split(" ").map((s) => s[0]).join("") || "?")
@@ -132,6 +148,21 @@ export default async function PatientPage({
               Edit
             </Link>
             <Link
+              href={`/screening/new?patientId=${patient.id}`}
+              className="btn-ghost"
+            >
+              <svg viewBox="0 0 24 24" fill="none" className="h-4 w-4">
+                <path
+                  d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2M7 12h10"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+              Start screening
+            </Link>
+            <Link
               href={`/patients/${patient.id}/visits/new`}
               className="btn-primary"
             >
@@ -142,6 +173,61 @@ export default async function PatientPage({
             </Link>
           </div>
         </section>
+
+        {screeningRows.length > 0 ? (
+          <section className="reveal mt-12" style={{ animationDelay: "80ms" }}>
+            <div className="mb-6 flex items-baseline justify-between">
+              <div>
+                <div className="eyebrow">Cancer screening</div>
+                <h2 className="font-display mt-1 text-2xl font-medium">Screenings</h2>
+              </div>
+              <span className="font-mono text-xs text-[--color-muted]">
+                {screeningRows.length} total
+              </span>
+            </div>
+            <ul className="space-y-2">
+              {screeningRows.map((s) => {
+                const bandChip =
+                  s.riskBand === "high"
+                    ? "chip-rust"
+                    : s.riskBand === "moderate"
+                      ? "chip-ochre"
+                      : "chip-pine";
+                return (
+                  <li key={s.id}>
+                    <Link
+                      href={`/screening/${s.id}`}
+                      className="card-flat flex items-center justify-between gap-5 px-5 py-4 transition hover:border-[--color-muted-2]"
+                    >
+                      <div className="flex min-w-0 flex-1 items-baseline gap-3">
+                        <span className="text-sm" title={s.screeningDate}>
+                          {relativeDate(s.screeningDate)}
+                        </span>
+                        <span className="font-mono text-xs tabular-nums text-[--color-muted]">
+                          {s.pathway}
+                        </span>
+                        {s.riskBand ? (
+                          <span className={`chip ${bandChip}`}>
+                            {s.riskBand} · {s.riskScore ?? 0}
+                          </span>
+                        ) : null}
+                        <span className="font-mono text-[11px] uppercase tracking-wide text-[--color-muted]">
+                          {s.reviewStatus}
+                        </span>
+                      </div>
+                      <span className="btn-link text-xs">
+                        Open
+                        <svg viewBox="0 0 24 24" fill="none" className="h-3 w-3">
+                          <path d="M5 12h14M13 5l7 7-7 7" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+                        </svg>
+                      </span>
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          </section>
+        ) : null}
 
         <section className="reveal mt-12" style={{ animationDelay: "120ms" }}>
           <div className="mb-6 flex items-baseline justify-between">

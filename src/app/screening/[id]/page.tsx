@@ -20,6 +20,7 @@ import { DecisionPanel } from "@/components/screening/doctor/DecisionPanel";
 import { OutcomePanel } from "@/components/screening/doctor/OutcomePanel";
 import type { Band, FiredFactor } from "@/lib/screening";
 import type { OralQuestionnaire } from "@/lib/validators/screening";
+import { AppShell } from "@/components/AppShell";
 
 type Patient = {
   id: string;
@@ -88,38 +89,29 @@ export default function CaseDetailPage() {
   }, [id]);
 
   return (
-    <div style={{ maxWidth: 640, margin: "0 auto", padding: "18px 18px 48px" }}>
-      <div style={{ marginBottom: 16 }}>
-        <Link
-          href="/screening/queue"
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 6,
-            textDecoration: "none",
-            color: "var(--muted)",
-            fontSize: 14,
-            fontWeight: 500,
-          }}
-        >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
-            <polyline points="15 18 9 12 15 6" />
-          </svg>
-          Queue
-        </Link>
-      </div>
-
-      {loading && <div className="scr-sub">Loading…</div>}
-      {error && (
-        <div className="scr-sub" style={{ color: "var(--hi-fg)" }}>
-          {error}
+    <AppShell>
+      <div className="mx-auto w-full max-w-5xl">
+        <div className="mb-4">
+          <Link href="/screening/queue" className="btn-link text-xs">
+            <svg viewBox="0 0 24 24" fill="none" className="h-3.5 w-3.5">
+              <path d="m15 18-6-6 6-6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            Queue
+          </Link>
         </div>
-      )}
 
-      {!loading && !error && data && id && (
-        <CaseDetail id={id} data={data} images={images} />
-      )}
-    </div>
+        {loading && <div className="scr-sub">Loading…</div>}
+        {error && (
+          <div className="scr-sub" style={{ color: "var(--hi-fg)" }}>
+            {error}
+          </div>
+        )}
+
+        {!loading && !error && data && id && (
+          <CaseDetail id={id} data={data} images={images} />
+        )}
+      </div>
+    </AppShell>
   );
 }
 
@@ -154,66 +146,64 @@ function CaseDetail({
   const patientMeta = `${patient.age}/${patient.gender ?? "—"}`;
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
-      {/* Header: score ring + patient + band */}
-      <div
-        className="card"
-        style={{
-          padding: 18,
-          display: "flex",
-          alignItems: "center",
-          gap: 16,
-        }}
-      >
-        <ScoreRing score={score} band={band} size={66} />
-        <div style={{ flex: 1 }}>
-          <div style={{ fontSize: 18, fontWeight: 600 }}>{patient.name}</div>
-          <div className="scr-sub" style={{ fontSize: 12, marginTop: 2 }}>
-            {meta} · {pathway} screening
-          </div>
-          <div style={{ marginTop: 8 }}>
-            <BandPill band={band} />
+    <div className="grid gap-5 lg:grid-cols-[1fr_360px] lg:items-start">
+      {/* LEFT — clinical decision flow */}
+      <div className="flex flex-col gap-5">
+        {/* Header: score ring + patient + band */}
+        <div
+          className="card"
+          style={{ padding: 18, display: "flex", alignItems: "center", gap: 16 }}
+        >
+          <ScoreRing score={score} band={band} size={66} />
+          <div style={{ flex: 1 }}>
+            <div className="font-display" style={{ fontSize: 20, fontWeight: 500 }}>
+              {patient.name}
+            </div>
+            <div className="scr-sub" style={{ fontSize: 12, marginTop: 2 }}>
+              {meta} · {pathway} screening
+            </div>
+            <div style={{ marginTop: 8 }}>
+              <BandPill band={band} />
+            </div>
           </div>
         </div>
+
+        {/* Triage / explainability — also on the doctor screen, the key requirement */}
+        <TriagePanel band={band} score={score} reasons={reasons} />
+
+        {/* Decision */}
+        <DecisionPanel
+          screeningId={id}
+          patientName={patient.name}
+          patientMeta={patientMeta}
+          pathway={pathway}
+          band={band}
+          score={score}
+          reasons={reasons}
+          initialReviewStatus={reviewStatus}
+          initialNotes={doctorNotes}
+        />
+
+        {/* Outcome / ground-truth feedback loop */}
+        <OutcomePanel
+          screeningId={id}
+          initialOutcome={outcome}
+          initialNotes={outcomeNotes}
+        />
       </div>
 
-      {/* Triage / explainability — the key requirement, also on the doctor screen */}
-      <TriagePanel band={band} score={score} reasons={reasons} />
-
-      {/* Reserved AI image-score slot */}
-      <AiSlot />
-
-      {/* Photo grid (opens zoom overlay with the AI heatmap slot) */}
-      <PhotoGrid screeningId={id} images={images} />
-
-      {/* Risk factors + symptoms summary */}
-      {questionnaire ? (
-        <QuestionnaireSummary q={questionnaire} />
-      ) : (
-        <div className="card" style={{ padding: 16 }}>
-          <div className="scr-sub">Questionnaire details unavailable.</div>
-        </div>
-      )}
-
-      {/* Decision */}
-      <DecisionPanel
-        screeningId={id}
-        patientName={patient.name}
-        patientMeta={patientMeta}
-        pathway={pathway}
-        band={band}
-        score={score}
-        reasons={reasons}
-        initialReviewStatus={reviewStatus}
-        initialNotes={doctorNotes}
-      />
-
-      {/* Outcome / ground-truth feedback loop */}
-      <OutcomePanel
-        screeningId={id}
-        initialOutcome={outcome}
-        initialNotes={outcomeNotes}
-      />
+      {/* RIGHT — the evidence the doctor reviews */}
+      <div className="flex flex-col gap-5">
+        <PhotoGrid screeningId={id} images={images} />
+        <AiSlot />
+        {questionnaire ? (
+          <QuestionnaireSummary q={questionnaire} />
+        ) : (
+          <div className="card" style={{ padding: 16 }}>
+            <div className="scr-sub">Questionnaire details unavailable.</div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

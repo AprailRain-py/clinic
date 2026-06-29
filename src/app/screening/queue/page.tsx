@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { listQueue, type QueueRow } from "@/lib/screening/client";
 import { SegTab } from "@/components/screening/primitives";
+import { AppShell } from "@/components/AppShell";
 import type { Band, FiredFactor } from "@/lib/screening";
 
 type QueueData = {
@@ -127,8 +128,9 @@ export default function QueuePage() {
   const counts = data?.counts ?? { high: 0, moderate: 0, low: 0 };
 
   return (
-    <div style={{ maxWidth: 640, margin: "0 auto", padding: "24px 18px 48px" }}>
-      <div className="eyebrow" style={{ color: "var(--tl)" }}>
+    <AppShell>
+      <div className="mx-auto w-full max-w-3xl">
+      <div className="eyebrow">
         Review queue
       </div>
       <div
@@ -259,6 +261,7 @@ export default function QueuePage() {
           );
         })}
       </div>
-    </div>
+      </div>
+    </AppShell>
   );
 }

@@ -29,6 +29,7 @@ export function AppShell({
     <div className="relative min-h-screen">
       <header className="relative z-10 border-b border-[--color-rule] bg-[--color-paper]/80 backdrop-blur-sm">
         <div className="container-shell flex items-center justify-between py-5">
+          <div className="flex items-center gap-1 md:gap-5">
           <Link href="/" className="group flex items-center gap-3">
             <span className="relative inline-flex h-9 w-9 items-center justify-center rounded-full bg-[--color-ink] text-[--color-paper]">
               <svg viewBox="0 0 24 24" fill="none" className="h-4 w-4">
@@ -45,6 +46,21 @@ export function AppShell({
               </span>
             </div>
           </Link>
+            <nav className="flex items-center gap-0.5 sm:gap-1">
+              <Link
+                href="/"
+                className="rounded-full px-2.5 py-1.5 text-sm text-[--color-muted] transition hover:bg-[--color-card] hover:text-[--color-ink]"
+              >
+                Patients
+              </Link>
+              <Link
+                href="/screening"
+                className="rounded-full px-2.5 py-1.5 text-sm text-[--color-muted] transition hover:bg-[--color-card] hover:text-[--color-ink]"
+              >
+                Screening
+              </Link>
+            </nav>
+          </div>
 
           <div className="hidden items-center gap-6 md:flex">
             <div className="text-right leading-tight">

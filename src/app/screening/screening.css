@@ -1,103 +1,113 @@
 /* ---------------------------------------------------------------------------
-   Screening module styling — ported from the "Arthik Screening" Claude Design
-   (teal + IBM Plex, red/amber/green triage). Everything is scoped under
-   .screening-root so it never leaks into the rest of the clinic app (which uses
-   the warm "Medical Editorial" system).
+   Screening module styling. The screening UI is a NEW ENCOUNTER TYPE INSIDE the
+   Arthik clinic app — same "Medical Editorial" design system as the rest of the
+   product (paper / pine / rust-ochre, Fraunces + Instrument Sans + JetBrains
+   Mono). This file only defines the screening-specific component shapes that
+   have no global equivalent (chips, toggles, triage pills, capture UI); the
+   tokens below remap onto the app's --color-* variables so everything matches.
+   Triage colours map to the app's own rust (high) / ochre (moderate) /
+   pine (low) — consistent AND a legible clinical safety signal.
    --------------------------------------------------------------------------- */
 
 .screening-root {
-  /* teal / brand */
-  --tl: #0f766e;
-  --tl-deep: #0b5c53;
-  --tl-50: #e9f6f3;
-  --tl-100: #c7e8e1;
+  /* primary → pine */
+  --tl: var(--color-pine);
+  --tl-deep: #14271c;
+  --tl-50: var(--color-pine-soft);
+  --tl-100: color-mix(in srgb, var(--color-pine) 25%, var(--color-card));
   /* ink / neutral */
-  --ink: #142020;
-  --ink-2: #3c4a4b;
-  --muted: #5a6b6d;
-  --faint: #93a1a3;
+  --ink: var(--color-ink);
+  --ink-2: var(--color-ink-soft);
+  --muted: var(--color-muted);
+  --faint: var(--color-muted-2);
   /* surfaces / borders */
-  --bg: #e7eced;
-  --screen: #f4f7f7;
-  --card: #ffffff;
-  --line: #e3e9ea;
-  --line-2: #d4dbdc;
-  /* triage */
-  --hi-fg: #b42318; --hi-bg: #fef3f2; --hi-bd: #fecdca;
-  --md-fg: #b54708; --md-bg: #fffaeb; --md-bd: #fedf89;
-  --lo-fg: #067647; --lo-bg: #ecfdf3; --lo-bd: #a6f4c5;
+  --bg: var(--color-paper);
+  --screen: var(--color-paper);
+  --card: var(--color-card);
+  --line: var(--color-rule);
+  --line-2: color-mix(in srgb, var(--color-rule) 60%, var(--color-muted-2));
+  /* triage = rust / ochre / pine */
+  --hi-fg: var(--color-rust);
+  --hi-bg: color-mix(in srgb, var(--color-rust) 8%, var(--color-card));
+  --hi-bd: color-mix(in srgb, var(--color-rust) 30%, var(--color-card));
+  --md-fg: color-mix(in srgb, var(--color-ochre) 85%, black);
+  --md-bg: color-mix(in srgb, var(--color-ochre) 12%, var(--color-card));
+  --md-bd: color-mix(in srgb, var(--color-ochre) 35%, var(--color-card));
+  --lo-fg: var(--color-pine);
+  --lo-bg: var(--color-pine-soft);
+  --lo-bd: color-mix(in srgb, var(--color-pine) 30%, var(--color-card));
 
-  font-family: var(--ip-sans), system-ui, sans-serif;
+  /* Aliases so existing inline `var(--ip-*)` font references resolve to the
+     app's Fraunces/Instrument Sans/JetBrains Mono instead of the old IBM Plex. */
+  --ip-sans: var(--font-body);
+  --ip-mono: var(--font-mono);
+
+  font-family: var(--font-body), system-ui, sans-serif;
   color: var(--ink);
-  background: var(--screen);
-  min-height: 100dvh;
-  -webkit-font-smoothing: antialiased;
 }
 
 .screening-root *,
 .screening-root *::before,
 .screening-root *::after { box-sizing: border-box; }
 
-.screening-root .mono { font-family: var(--ip-mono), monospace; }
-.screening-root .eyebrow {
-  font-family: var(--ip-mono), monospace;
-  font-weight: 600; font-size: 11px; letter-spacing: 0.12em;
-  text-transform: uppercase; color: var(--muted);
-}
+.screening-root .mono { font-family: var(--font-mono), ui-monospace, monospace; }
 .screening-root .scr-title {
-  font-weight: 600; font-size: 22px; line-height: 1.15; color: var(--ink);
+  font-family: var(--font-display), Georgia, serif;
+  font-weight: 500; font-size: 22px; line-height: 1.15; color: var(--ink);
+  letter-spacing: -0.01em;
 }
 .screening-root .scr-sub { font-size: 14px; color: var(--muted); }
-.screening-root .card {
-  background: var(--card); border: 1px solid var(--line);
-  border-radius: 16px; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
-}
 
 /* segmented tab */
 .screening-root .seg-tab {
   appearance: none; border: none; cursor: pointer; border-radius: 8px;
-  padding: 8px 13px; font: 600 13px var(--ip-sans), sans-serif;
+  padding: 8px 13px; font: 500 13px var(--font-body), sans-serif;
   background: transparent; color: var(--muted);
 }
-.screening-root .seg-tab.on { background: var(--tl); color: #fff; }
+.screening-root .seg-tab.on { background: var(--tl); color: var(--color-paper); }
 
-/* chip */
+/* chip (large selectable option — scoped, overrides the global small .chip
+   only inside the screening UI via descendant specificity) */
 .screening-root .chip {
   appearance: none; cursor: pointer; border-radius: 11px; padding: 11px 14px;
-  font: 500 14px var(--ip-sans), sans-serif; background: #fff; color: var(--ink-2);
-  border: 1.5px solid var(--line);
+  font: 500 14px var(--font-body), sans-serif; background: var(--card);
+  color: var(--ink-2); border: 1.5px solid var(--line);
 }
-.screening-root .chip.on { background: var(--tl); color: #fff; border-color: var(--tl); }
+.screening-root .chip.on { background: var(--tl); color: var(--color-paper); border-color: var(--tl); }
 .screening-root .chip.sex { flex: 1; padding: 13px 0; text-align: center; font-weight: 600; }
 
 /* duration chip */
 .screening-root .durchip {
   flex: 1; appearance: none; cursor: pointer; border-radius: 9px; padding: 9px 2px;
-  font: 600 11px var(--ip-mono), monospace; background: var(--screen);
+  font: 600 11px var(--font-mono), monospace; background: var(--color-paper-2);
   color: var(--muted); border: 1.5px solid var(--line);
 }
-.screening-root .durchip.on { background: var(--ink); color: #fff; border-color: var(--ink); }
+.screening-root .durchip.on { background: var(--ink); color: var(--color-paper); border-color: var(--ink); }
 
 /* selectable card / list row */
 .screening-root .pcard,
 .screening-root .pres {
-  display: flex; align-items: center; gap: 14px; background: #fff;
-  cursor: pointer; border: 1.5px solid var(--line); box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+  display: flex; align-items: center; gap: 14px; background: var(--card);
+  cursor: pointer; border: 1px solid var(--line);
 }
-.screening-root .pcard { border-radius: 18px; padding: 18px; }
-.screening-root .pres { border-radius: 13px; padding: 13px; }
+.screening-root .pcard { border-radius: 14px; padding: 18px; }
+.screening-root .pres { border-radius: 12px; padding: 13px; }
 .screening-root .pcard.on,
-.screening-root .pres.on { border-color: var(--tl); box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.1); }
+.screening-root .pres.on {
+  border-color: var(--tl);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-pine) 12%, transparent);
+}
 
 /* consent */
 .screening-root .consent-row {
-  display: flex; align-items: flex-start; gap: 13px; background: #fff;
-  border: 1.5px solid var(--line); border-radius: 14px; padding: 16px; cursor: pointer;
+  display: flex; align-items: flex-start; gap: 13px; background: var(--card);
+  border: 1px solid var(--line); border-radius: 14px; padding: 16px; cursor: pointer;
 }
 .screening-root .consent-row.on { background: var(--tl-50); border-color: var(--tl); }
 .screening-root .consent-box {
-  width: 24px; height: 24px; border-radius: 7px; flex-shrink: 0; background: #fff;
-  border: 2px solid #c7d2d3; display: flex; align-items: center; justify-content: center; color: #fff;
+  width: 24px; height: 24px; border-radius: 7px; flex-shrink: 0; background: var(--card);
+  border: 2px solid var(--line-2); display: flex; align-items: center; justify-content: center;
+  color: var(--color-paper);
 }
 .screening-root .consent-box.on { background: var(--tl); border-color: var(--tl); }
 
@@ -109,19 +119,19 @@
 }
 .screening-root .sw-track.on { background: var(--tl); justify-content: flex-end; }
 .screening-root .sw-knob {
-  width: 23px; height: 23px; border-radius: 50%; background: #fff;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+  width: 23px; height: 23px; border-radius: 50%; background: var(--color-paper);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
 /* symptom row */
 .screening-root .sym-row {
-  padding: 14px; border-radius: 14px; border: 1.5px solid var(--line); background: #fff;
+  padding: 14px; border-radius: 14px; border: 1px solid var(--line); background: var(--card);
 }
 .screening-root .sym-row.on { border-color: var(--tl); }
 .screening-root .sym-row.fired { border-color: var(--hi-bd); background: var(--hi-bg); }
 .screening-root .sym-box {
-  width: 24px; height: 24px; border-radius: 7px; background: #fff; border: 2px solid #c7d2d3;
-  display: flex; align-items: center; justify-content: center; color: #fff; flex-shrink: 0;
+  width: 24px; height: 24px; border-radius: 7px; background: var(--card); border: 2px solid var(--line-2);
+  display: flex; align-items: center; justify-content: center; color: var(--color-paper); flex-shrink: 0;
 }
 .screening-root .sym-box.on { background: var(--tl); border-color: var(--tl); }
 .screening-root .sym-box.fired { background: var(--hi-fg); border-color: var(--hi-fg); }
@@ -129,7 +139,7 @@
 /* outcome radio */
 .screening-root .oc {
   display: flex; align-items: center; gap: 13px; padding: 15px; border-radius: 14px;
-  border: 1.5px solid var(--line); background: #fff; cursor: pointer;
+  border: 1px solid var(--line); background: var(--card); cursor: pointer;
 }
 .screening-root .oc-dot {
   width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--line-2); flex-shrink: 0;
@@ -143,10 +153,10 @@
 
 /* doctor queue case + triage primitives */
 .screening-root .dcase {
-  display: flex; gap: 13px; background: #fff; border: 1px solid var(--line);
-  border-radius: 16px; padding: 14px; cursor: pointer; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+  display: flex; gap: 13px; background: var(--card); border: 1px solid var(--line);
+  border-radius: 14px; padding: 14px; cursor: pointer;
 }
-.screening-root .dcase.on { box-shadow: 0 0 0 2px var(--tl); }
+.screening-root .dcase:hover { border-color: var(--color-muted-2); }
 .screening-root .accent { width: 4px; align-self: stretch; border-radius: 3px; }
 .screening-root .accent.high { background: var(--hi-fg); }
 .screening-root .accent.moderate { background: var(--md-fg); }
@@ -154,58 +164,49 @@
 
 .screening-root .bandpill {
   display: inline-block; padding: 5px 11px; border-radius: 9px;
-  font: 700 11px var(--ip-mono), monospace; text-transform: uppercase; letter-spacing: 0.04em;
+  font: 700 11px var(--font-mono), monospace; text-transform: uppercase; letter-spacing: 0.04em;
 }
 .screening-root .bandpill.high { background: var(--hi-bg); color: var(--hi-fg); border: 1px solid var(--hi-bd); }
 .screening-root .bandpill.moderate { background: var(--md-bg); color: var(--md-fg); border: 1px solid var(--md-bd); }
 .screening-root .bandpill.low { background: var(--lo-bg); color: var(--lo-fg); border: 1px solid var(--lo-bd); }
 
-/* primary button */
-.screening-root .btn-primary {
-  width: 100%; border: none; border-radius: 14px; padding: 16px; cursor: pointer;
-  font: 600 16px var(--ip-sans), sans-serif; background: var(--tl); color: #fff;
-  box-shadow: 0 6px 16px -6px rgba(15, 118, 110, 0.6);
-}
-.screening-root .btn-primary.off {
-  background: var(--line); color: #9faeaf; cursor: not-allowed; box-shadow: none;
-}
-.screening-root .btn-ghost {
-  width: 100%; border: 1.5px solid var(--line); border-radius: 14px; padding: 14px; cursor: pointer;
-  font: 600 15px var(--ip-sans), sans-serif; background: #fff; color: var(--ink-2);
-}
-
-/* text input */
+/* text input (matches the app .input-field feel) */
 .screening-root .field {
-  width: 100%; border: 1.5px solid var(--line); border-radius: 12px; padding: 13px 14px;
-  font: 400 15px var(--ip-sans), sans-serif; color: var(--ink); background: #fff;
+  width: 100%; border: 1px solid var(--line); border-radius: 10px; padding: 11px 13px;
+  font: 400 15px var(--font-body), sans-serif; color: var(--ink); background: var(--card);
 }
-.screening-root .field:focus { outline: none; border-color: var(--tl); }
+.screening-root .field:focus {
+  outline: none; border-color: var(--tl);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-pine) 12%, transparent);
+}
 
 /* photo thumbs + progress */
 .screening-root .thumb {
-  width: 52px; height: 52px; border-radius: 13px; display: flex; align-items: center;
-  justify-content: center; background: rgba(255, 255, 255, 0.06); border: 1.5px dashed #9faeaf;
-  color: #9faeaf; flex-shrink: 0;
+  width: 52px; height: 52px; border-radius: 12px; display: flex; align-items: center;
+  justify-content: center; background: color-mix(in srgb, var(--color-paper-2) 60%, transparent);
+  border: 1.5px dashed var(--faint); color: var(--faint); flex-shrink: 0;
 }
 .screening-root .thumb.cur { background: var(--tl-50); border: 2px solid var(--tl); color: var(--tl); }
-.screening-root .thumb.cap { background: var(--tl); border: 1.5px solid var(--tl); color: #fff; }
+.screening-root .thumb.cap { background: var(--tl); border: 1.5px solid var(--tl); color: var(--color-paper); }
 .screening-root .progtrack { height: 3px; background: var(--line); border-radius: 2px; overflow: hidden; }
 .screening-root .prog { height: 100%; background: var(--tl); transition: width 0.2s; }
 
-/* live-quality pill */
+/* live-quality pill (sits over the dark camera view) */
 .screening-root .lqpill {
   display: inline-flex; align-items: center; gap: 8px; padding: 7px 13px; border-radius: 999px;
-  font: 600 12px var(--ip-mono), monospace; background: rgba(0, 0, 0, 0.55); color: #fff;
+  font: 600 12px var(--font-mono), monospace; background: rgba(0, 0, 0, 0.55); color: #fff;
 }
 .screening-root .lqdot { width: 9px; height: 9px; border-radius: 50%; animation: om-pulse 1.4s infinite; }
 
 /* AI-not-enabled placeholder */
 .screening-root .ai-slot {
-  border: 1.5px dashed #c7d2d3; background: #fafcfc; border-radius: 14px; padding: 16px;
+  border: 1.5px dashed var(--line-2);
+  background: color-mix(in srgb, var(--color-paper-2) 45%, var(--color-card));
+  border-radius: 14px; padding: 16px;
 }
 .screening-root .ai-pill {
-  font: 600 10px var(--ip-mono), monospace; text-transform: uppercase; letter-spacing: 0.08em;
-  color: var(--muted); background: #eef2f2; border-radius: 999px; padding: 4px 9px;
+  font: 600 10px var(--font-mono), monospace; text-transform: uppercase; letter-spacing: 0.08em;
+  color: var(--muted); background: var(--color-paper-2); border-radius: 999px; padding: 4px 9px;
 }
 
 @keyframes om-pulse { 0%, 100% { opacity: 0.55; transform: scale(0.96); } 50% { opacity: 1; transform: scale(1); } }

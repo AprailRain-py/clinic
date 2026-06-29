@@ -1,7 +1,8 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useEffect, useMemo, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { AppShell } from "@/components/AppShell";
 import { PrimaryButton, ProgressBar } from "@/components/screening/primitives";
 import CaptureStep from "@/components/screening/ma/CaptureStep";
 import ConsentStep from "@/components/screening/ma/ConsentStep";
@@ -43,9 +44,14 @@ const FOOTER_LABELS: Record<number, string> = {
   7: "Submit to doctor's queue",
 };
 
-export default function NewScreeningPage() {
+function NewScreeningFlow() {
   const router = useRouter();
-  const [step, setStep] = useState(1);
+  const searchParams = useSearchParams();
+  // Launched from a patient record (?patientId=) → skip the patient step.
+  const patientIdParam = searchParams.get("patientId");
+  const firstStep = patientIdParam ? 2 : 1;
+
+  const [step, setStep] = useState(firstStep);
   const [patient, setPatient] = useState<SelectedPatient | null>(null);
   const [screeningId, setScreeningId] = useState<string | null>(null);
   const [questionnaire, setQuestionnaire] = useState<OralQuestionnaire>(
@@ -54,6 +60,40 @@ export default function NewScreeningPage() {
   const [captured, setCaptured] = useState<CapturedMap>({});
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [prefilling, setPrefilling] = useState<boolean>(!!patientIdParam);
+
+  // Prefill the patient when launched from a patient's record.
+  useEffect(() => {
+    if (!patientIdParam) return;
+    let cancelled = false;
+    setPrefilling(true);
+    fetch(`/api/patients/${patientIdParam}`)
+      .then((r) => (r.ok ? r.json() : Promise.reject(new Error("not_found"))))
+      .then(
+        (res: {
+          patient: { id: string; name: string; age: number; gender: string | null };
+        }) => {
+          if (cancelled) return;
+          setPatient({
+            patientId: res.patient.id,
+            name: res.patient.name,
+            age: res.patient.age,
+            gender: res.patient.gender ?? "",
+          });
+        },
+      )
+      .catch(() => {
+        if (cancelled) return;
+        setError("Could not load that patient — please select one.");
+        setStep(1);
+      })
+      .finally(() => {
+        if (!cancelled) setPrefilling(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [patientIdParam]);
 
   const views = useMemo(() => applicableViews(questionnaire), [questionnaire]);
   const capturedCount = views.filter((v) => captured[v.id]).length;
@@ -124,16 +164,16 @@ export default function NewScreeningPage() {
 
   function back() {
     setError(null);
-    if (step <= 1) {
-      router.push("/screening");
+    if (step <= firstStep) {
+      router.push(patientIdParam ? `/patients/${patientIdParam}` : "/screening");
       return;
     }
     setStep((s) => s - 1);
   }
 
   function reset() {
-    setStep(1);
-    setPatient(null);
+    setStep(firstStep);
+    if (!patientIdParam) setPatient(null);
     setScreeningId(null);
     setQuestionnaire(initialQuestionnaire());
     setCaptured({});
@@ -143,131 +183,118 @@ export default function NewScreeningPage() {
   // ----- submitted (terminal) -----
   if (step === 8 && patient && result) {
     return (
-      <Shell>
-        <SubmittedStep patient={patient} band={result.band} score={result.score} onNew={reset} />
-      </Shell>
+      <AppShell>
+        <div className="mx-auto w-full max-w-xl">
+          <SubmittedStep patient={patient} band={result.band} score={result.score} onNew={reset} />
+        </div>
+      </AppShell>
     );
   }
 
+  const wide = step === 6;
+
   return (
-    <Shell>
-      {/* header */}
-      <div style={{ flex: "none", background: "#fff", borderBottom: "1px solid var(--line)" }}>
-        <div style={{ height: 54, display: "flex", alignItems: "center", gap: 4, padding: "0 10px 0 6px" }}>
-          <button
-            type="button"
-            onClick={back}
-            aria-label="Back"
-            style={{
-              width: 42,
-              height: 42,
-              flex: "none",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              background: "none",
-              border: "none",
-              cursor: "pointer",
-              borderRadius: 12,
-            }}
-          >
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="15 18 9 12 15 6" />
-            </svg>
-          </button>
-          <div style={{ font: "600 17px var(--ip-sans), sans-serif", color: "var(--ink)" }}>
-            {TITLES[step]}
+    <AppShell>
+      <div className={`mx-auto w-full ${wide ? "max-w-2xl" : "max-w-xl"}`}>
+        {/* step header */}
+        <div className="mb-5">
+          <div className="flex items-center gap-3">
+            <button type="button" onClick={back} className="btn-link text-xs" aria-label="Back">
+              <svg viewBox="0 0 24 24" fill="none" className="h-3.5 w-3.5">
+                <path d="m15 18-6-6 6-6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+              Back
+            </button>
+            <div className="font-display text-lg font-medium">{TITLES[step]}</div>
+            <div className="flex-1" />
+            <span className="font-mono text-xs text-[--color-muted]">
+              Step {step} of {TOTAL}
+            </span>
           </div>
-          <div style={{ flex: 1 }} />
-          <span className="mono" style={{ font: "500 12px var(--ip-mono), monospace", color: "var(--faint)", margin: "0 10px 0 8px" }}>
-            Step {step} of {TOTAL}
-          </span>
+          <div className="mt-3">
+            <ProgressBar step={step} total={TOTAL} />
+          </div>
         </div>
-        <ProgressBar step={step} total={TOTAL} />
-      </div>
 
-      {/* body */}
-      {step === 6 ? (
-        screeningId ? (
-          <CaptureStep
-            screeningId={screeningId}
-            views={views}
-            captured={captured}
-            setCaptured={setCaptured}
-            onReview={() => setStep(7)}
-          />
+        {/* body */}
+        {prefilling ? (
+          <div className="scr-sub">Loading patient…</div>
+        ) : step === 6 ? (
+          screeningId ? (
+            <div
+              className="flex flex-col overflow-hidden rounded-2xl border border-[--color-rule]"
+              style={{ height: "min(72vh, 600px)" }}
+            >
+              <CaptureStep
+                screeningId={screeningId}
+                views={views}
+                captured={captured}
+                setCaptured={setCaptured}
+                onReview={() => setStep(7)}
+              />
+            </div>
+          ) : (
+            <div className="scr-sub">
+              Screening draft missing — go back and re-confirm consent.
+            </div>
+          )
         ) : (
-          <div style={{ flex: 1, padding: 18, color: "var(--muted)" }}>
-            Screening draft missing — go back and re-confirm consent.
+          <div>
+            {step === 1 && <PatientStep selected={patient} onSelect={setPatient} />}
+            {step === 2 && patient && (
+              <ConsentStep
+                patient={patient}
+                questionnaire={questionnaire}
+                setQuestionnaire={setQuestionnaire}
+              />
+            )}
+            {step === 3 && (
+              <RiskStep questionnaire={questionnaire} setQuestionnaire={setQuestionnaire} />
+            )}
+            {step === 4 && (
+              <SymptomsStep
+                questionnaire={questionnaire}
+                setQuestionnaire={setQuestionnaire}
+                firedReasons={result?.firedReasons ?? []}
+              />
+            )}
+            {step === 5 && (
+              <ExamStep questionnaire={questionnaire} setQuestionnaire={setQuestionnaire} />
+            )}
+            {step === 7 && patient && result && (
+              <ReviewStep
+                patient={patient}
+                questionnaire={questionnaire}
+                result={result}
+                capturedCount={capturedCount}
+                totalViews={views.length}
+              />
+            )}
           </div>
-        )
-      ) : (
-        <div style={{ flex: 1, overflowY: "auto", padding: 18, minHeight: 0 }}>
-          {step === 1 && <PatientStep selected={patient} onSelect={setPatient} />}
-          {step === 2 && patient && (
-            <ConsentStep
-              patient={patient}
-              questionnaire={questionnaire}
-              setQuestionnaire={setQuestionnaire}
-            />
-          )}
-          {step === 3 && (
-            <RiskStep questionnaire={questionnaire} setQuestionnaire={setQuestionnaire} />
-          )}
-          {step === 4 && (
-            <SymptomsStep
-              questionnaire={questionnaire}
-              setQuestionnaire={setQuestionnaire}
-              firedReasons={result?.firedReasons ?? []}
-            />
-          )}
-          {step === 5 && (
-            <ExamStep questionnaire={questionnaire} setQuestionnaire={setQuestionnaire} />
-          )}
-          {step === 7 && patient && result && (
-            <ReviewStep
-              patient={patient}
-              questionnaire={questionnaire}
-              result={result}
-              capturedCount={capturedCount}
-              totalViews={views.length}
-            />
-          )}
-        </div>
-      )}
+        )}
 
-      {/* footer (sticky); the capture step renders its own controls */}
-      {step !== 6 && (
-        <div style={{ flex: "none", background: "#fff", borderTop: "1px solid var(--line)", padding: "14px 18px 18px" }}>
-          {error && (
-            <div style={{ color: "var(--hi-fg)", fontSize: 13, marginBottom: 10 }}>{error}</div>
-          )}
-          <PrimaryButton disabled={!canAdvance || busy} onClick={next}>
-            {busy ? "Working…" : FOOTER_LABELS[step]}
-          </PrimaryButton>
-        </div>
-      )}
-    </Shell>
+        {/* footer (the capture step renders its own controls) */}
+        {step !== 6 && !prefilling && (
+          <div className="mt-6">
+            {error && (
+              <div className="mb-3 text-sm" style={{ color: "var(--hi-fg)" }}>
+                {error}
+              </div>
+            )}
+            <PrimaryButton disabled={!canAdvance || busy} onClick={next}>
+              {busy ? "Working…" : FOOTER_LABELS[step]}
+            </PrimaryButton>
+          </div>
+        )}
+      </div>
+    </AppShell>
   );
 }
 
-function Shell({ children }: { children: React.ReactNode }) {
+export default function NewScreeningPage() {
   return (
-    <div style={{ minHeight: "100dvh", display: "flex", justifyContent: "center", background: "var(--screen)" }}>
-      <div
-        style={{
-          width: "100%",
-          maxWidth: 440,
-          minHeight: "100dvh",
-          height: "100dvh",
-          display: "flex",
-          flexDirection: "column",
-          background: "var(--screen)",
-          position: "relative",
-        }}
-      >
-        {children}
-      </div>
-    </div>
+    <Suspense fallback={null}>
+      <NewScreeningFlow />
+    </Suspense>
   );
 }
