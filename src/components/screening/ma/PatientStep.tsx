@@ -1,10 +1,10 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Chip } from "@/components/screening/primitives";
 import { SEX_OPTIONS } from "@/lib/screening/oral-form";
 import { initials, todayISO } from "./helpers";
 import type { SelectedPatient } from "./types";
+import { Field, SegControl } from "./StepKit";
 
 type ApiPatient = {
   id: string;
@@ -14,30 +14,22 @@ type ApiPatient = {
   mobile: string | null;
 };
 
-const labelStyle: React.CSSProperties = {
-  font: "600 11px var(--ip-mono), monospace",
-  letterSpacing: "0.08em",
-  textTransform: "uppercase",
-  color: "var(--faint)",
-  marginBottom: 7,
-};
-
+// Selecting a patient IS the action on this step — tapping a result (or
+// registering) advances the flow. There is no separate footer button here, so
+// the screen has a single, unambiguous primary action.
 export default function PatientStep({
-  selected,
-  onSelect,
+  onPicked,
 }: {
-  selected: SelectedPatient | null;
-  onSelect: (p: SelectedPatient) => void;
+  onPicked: (p: SelectedPatient) => void;
 }) {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<ApiPatient[]>([]);
   const [loading, setLoading] = useState(false);
-  const [creating, setCreating] = useState(false);
+  const [mode, setMode] = useState<"search" | "create">("search");
 
-  // New-patient form
   const [npName, setNpName] = useState("");
   const [npAge, setNpAge] = useState("");
-  const [npSex, setNpSex] = useState<string>("");
+  const [npSex, setNpSex] = useState("");
   const [npMobile, setNpMobile] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -74,12 +66,12 @@ export default function PatientStep({
     };
   }, [query]);
 
+  const ageNum = Number.parseInt(npAge, 10);
+  const createValid = npName.trim().length > 0 && Number.isFinite(ageNum) && !!npSex;
+
   async function createPatient() {
     setError(null);
-    const ageNum = Number.parseInt(npAge, 10);
-    if (!npName.trim()) return setError("Enter the patient's name.");
-    if (!Number.isFinite(ageNum)) return setError("Enter a valid age.");
-    if (!npSex) return setError("Select a sex.");
+    if (!createValid) return;
     setSaving(true);
     try {
       const res = await fetch("/api/patients", {
@@ -100,12 +92,7 @@ export default function PatientStep({
         throw new Error(b.error ?? `http_${res.status}`);
       }
       const p = (await res.json()) as ApiPatient;
-      onSelect({
-        patientId: p.id,
-        name: p.name,
-        age: p.age,
-        gender: p.gender ?? npSex,
-      });
+      onPicked({ patientId: p.id, name: p.name, age: p.age, gender: p.gender ?? npSex });
     } catch (e) {
       setError(e instanceof Error ? e.message : "Could not register patient.");
     } finally {
@@ -113,208 +100,149 @@ export default function PatientStep({
     }
   }
 
-  if (creating) {
+  if (mode === "create") {
     return (
-      <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-        <div style={{ font: "600 16px var(--ip-sans), sans-serif", color: "var(--ink)" }}>
-          New patient
+      <section className="card p-5 md:p-6">
+        <div className="mb-5 flex items-baseline justify-between">
+          <h2 className="font-display text-lg font-medium">New patient</h2>
+          <span className="eyebrow">Required</span>
         </div>
-        <div>
-          <div style={labelStyle}>Full name</div>
-          <input
-            className="field"
-            value={npName}
-            onChange={(e) => setNpName(e.target.value)}
-            placeholder="e.g. Ramesh Patel"
-          />
-        </div>
-        <div style={{ display: "flex", gap: 12 }}>
-          <div style={{ width: 96 }}>
-            <div style={labelStyle}>Age</div>
+
+        <div className="space-y-5">
+          <Field label="Full name">
             <input
-              className="field"
-              value={npAge}
-              onChange={(e) => setNpAge(e.target.value.replace(/[^0-9]/g, ""))}
-              inputMode="numeric"
-              placeholder="54"
+              className="input-field"
+              value={npName}
+              onChange={(e) => setNpName(e.target.value)}
+              placeholder="e.g. Ramesh Patel"
+              autoFocus
             />
+          </Field>
+
+          <div className="grid gap-5 sm:grid-cols-[7rem_1fr]">
+            <Field label="Age">
+              <input
+                className="input-field font-mono"
+                value={npAge}
+                onChange={(e) => setNpAge(e.target.value.replace(/[^0-9]/g, "").slice(0, 3))}
+                inputMode="numeric"
+                placeholder="54"
+              />
+            </Field>
+            <Field label="Sex">
+              <SegControl options={SEX_OPTIONS} value={npSex} onChange={setNpSex} ariaLabel="Sex" />
+            </Field>
           </div>
-          <div style={{ flex: 1 }}>
-            <div style={labelStyle}>Sex</div>
-            <div style={{ display: "flex", gap: 8 }}>
-              {SEX_OPTIONS.map((o) => (
-                <Chip
-                  key={o.value}
-                  sex
-                  on={npSex === o.value}
-                  onClick={() => setNpSex(o.value)}
-                >
-                  {o.label}
-                </Chip>
-              ))}
-            </div>
-          </div>
+
+          <Field label="Phone" hint="optional">
+            <input
+              className="input-field font-mono"
+              value={npMobile}
+              onChange={(e) => setNpMobile(e.target.value)}
+              inputMode="tel"
+              placeholder="98250 11234"
+            />
+          </Field>
+
+          {error ? <p className="text-sm text-[--color-rust]">{error}</p> : null}
         </div>
-        <div>
-          <div style={labelStyle}>Phone</div>
-          <input
-            className="field"
-            value={npMobile}
-            onChange={(e) => setNpMobile(e.target.value)}
-            inputMode="tel"
-            placeholder="98250 11234"
-          />
+
+        <div className="mt-6 flex items-center justify-between gap-3">
+          <button
+            type="button"
+            className="btn-link text-xs"
+            onClick={() => {
+              setMode("search");
+              setError(null);
+            }}
+          >
+            Back to search
+          </button>
+          <button
+            type="button"
+            className="btn-primary disabled:opacity-50"
+            disabled={!createValid || saving}
+            onClick={createPatient}
+          >
+            {saving ? "Registering…" : "Register & continue"}
+            <svg viewBox="0 0 24 24" fill="none" className="h-4 w-4">
+              <path d="M5 12h14M13 5l7 7-7 7" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </button>
         </div>
-        {error && (
-          <div style={{ color: "var(--hi-fg)", fontSize: 13 }}>{error}</div>
-        )}
-        <button
-          type="button"
-          className="btn-primary"
-          disabled={saving}
-          onClick={createPatient}
-          style={{ opacity: saving ? 0.7 : 1 }}
-        >
-          {saving ? "Saving…" : "Register & select"}
-        </button>
-        <button
-          type="button"
-          onClick={() => {
-            setCreating(false);
-            setError(null);
-          }}
-          style={{
-            alignSelf: "flex-start",
-            background: "none",
-            border: "none",
-            color: "var(--muted)",
-            font: "500 13px var(--ip-sans), sans-serif",
-            cursor: "pointer",
-            textDecoration: "underline",
-            padding: "4px 0",
-          }}
-        >
-          Back to search
-        </button>
-      </div>
+      </section>
     );
   }
 
   return (
     <div>
-      <div style={{ position: "relative", marginBottom: 14 }}>
-        <span
-          style={{
-            position: "absolute",
-            left: 14,
-            top: "50%",
-            transform: "translateY(-50%)",
-            color: "var(--faint)",
-            display: "flex",
-          }}
-        >
-          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <div className="relative">
+        <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-[--color-muted-2]">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <circle cx="11" cy="11" r="7" />
             <line x1="21" y1="21" x2="16.5" y2="16.5" strokeLinecap="round" />
           </svg>
         </span>
         <input
-          className="field"
+          className="input-field"
           style={{ paddingLeft: 42 }}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search name or phone"
+          placeholder="Search by name or phone"
+          autoFocus
         />
       </div>
 
-      {loading && (
-        <div style={{ color: "var(--muted)", fontSize: 13, padding: "4px 2px 10px" }}>
-          Searching…
-        </div>
-      )}
+      <div className="mt-4 space-y-2">
+        {loading ? (
+          <p className="px-1 text-sm text-[--color-muted]">Searching…</p>
+        ) : null}
+        {!loading && query.trim() && results.length === 0 ? (
+          <p className="px-1 text-sm text-[--color-muted]">
+            No matches — register a new patient below.
+          </p>
+        ) : null}
 
-      {!loading && query.trim() && results.length === 0 && (
-        <div style={{ color: "var(--muted)", fontSize: 13, padding: "4px 2px 10px" }}>
-          No matches — register a new patient below.
-        </div>
-      )}
-
-      {results.map((p) => {
-        const on = selected?.patientId === p.id;
-        const meta = [`${p.age}`, p.gender ?? "—", p.mobile ?? ""]
-          .filter(Boolean)
-          .join(" · ");
-        return (
-          <div
-            key={p.id}
-            className={`pres${on ? " on" : ""}`}
-            style={{ marginBottom: 10 }}
-            onClick={() =>
-              onSelect({
-                patientId: p.id,
-                name: p.name,
-                age: p.age,
-                gender: p.gender ?? "other",
-              })
-            }
-          >
-            <div
-              style={{
-                width: 42,
-                height: 42,
-                flex: "none",
-                borderRadius: "50%",
-                background: "var(--tl-50)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                font: "600 15px var(--ip-sans), sans-serif",
-                color: "var(--tl)",
-              }}
+        {results.map((p) => {
+          const meta = [`${p.age} yr`, p.gender ?? null, p.mobile ?? null]
+            .filter(Boolean)
+            .join(" · ");
+          return (
+            <button
+              key={p.id}
+              type="button"
+              onClick={() =>
+                onPicked({
+                  patientId: p.id,
+                  name: p.name,
+                  age: p.age,
+                  gender: p.gender ?? "other",
+                })
+              }
+              className="card-flat flex w-full items-center gap-4 px-4 py-3 text-left transition hover:border-[--color-pine]"
             >
-              {initials(p.name)}
-            </div>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ font: "600 15px var(--ip-sans), sans-serif", color: "var(--ink)" }}>
-                {p.name}
-              </div>
-              <div style={{ font: "400 12px var(--ip-sans), sans-serif", color: "var(--muted)", marginTop: 2 }}>
-                {meta}
-              </div>
-            </div>
-            {on && (
-              <span style={{ color: "var(--tl)", display: "flex" }}>
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-                  <polyline points="20 6 9 17 4 12" />
-                </svg>
+              <span className="flex h-10 w-10 flex-none items-center justify-center rounded-full bg-pine-soft font-mono text-sm font-semibold text-[--color-pine]">
+                {initials(p.name)}
               </span>
-            )}
-          </div>
-        );
-      })}
+              <span className="min-w-0 flex-1">
+                <span className="block truncate font-medium text-[--color-ink]">{p.name}</span>
+                <span className="block text-xs text-[--color-muted]">{meta}</span>
+              </span>
+              <svg viewBox="0 0 24 24" fill="none" className="h-4 w-4 flex-none text-[--color-muted-2]">
+                <path d="M9 6l6 6-6 6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </button>
+          );
+        })}
+      </div>
 
       <button
         type="button"
-        onClick={() => setCreating(true)}
-        style={{
-          width: "100%",
-          marginTop: 6,
-          padding: 15,
-          border: "1.5px dashed #c7d2d3",
-          borderRadius: 13,
-          background: "#fff",
-          font: "600 14px var(--ip-sans), sans-serif",
-          color: "var(--tl)",
-          cursor: "pointer",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          gap: 8,
-        }}
+        onClick={() => setMode("create")}
+        className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-[--color-rule] bg-card px-4 py-3.5 text-sm font-medium text-[--color-pine] transition hover:border-[--color-pine]"
       >
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
-          <line x1="12" y1="5" x2="12" y2="19" />
-          <line x1="5" y1="12" x2="19" y2="12" />
+        <svg viewBox="0 0 24 24" fill="none" className="h-4 w-4">
+          <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
         </svg>
         Register new patient
       </button>

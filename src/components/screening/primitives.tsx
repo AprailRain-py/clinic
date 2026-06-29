@@ -32,9 +32,10 @@ export function PrimaryButton({
   return (
     <button
       type={type}
-      className={`btn-primary${disabled ? " off" : ""}`}
+      className="btn-primary justify-center"
       disabled={disabled}
       onClick={onClick}
+      style={disabled ? { opacity: 0.4, cursor: "not-allowed", boxShadow: "none" } : undefined}
     >
       {children}
     </button>

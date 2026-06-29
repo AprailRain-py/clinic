@@ -1,6 +1,6 @@
 "use client";
 
-import { Chip, Switch } from "@/components/screening/primitives";
+import { Switch } from "@/components/screening/primitives";
 import {
   ALCOHOL_OPTIONS,
   HABIT_STATUS_OPTIONS,
@@ -8,97 +8,16 @@ import {
   QUID_SITE_OPTIONS,
   SMOKED_TYPE_OPTIONS,
   SMOKELESS_TYPE_OPTIONS,
-  type Opt,
 } from "@/lib/screening/oral-form";
 import type { OralRiskFactors } from "@/lib/validators/screening";
 import type { QuestionnaireStepProps } from "./types";
+import { ChoiceGroup, PickGroup, SegControl, Section, StepIntro } from "./StepKit";
 
-const eyebrow: React.CSSProperties = {
-  font: "600 11px var(--ip-mono), monospace",
-  letterSpacing: "0.1em",
-  color: "var(--faint)",
-  textTransform: "uppercase",
-};
-
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+function SubField({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div>
-      <div style={eyebrow}>{title}</div>
-      <div style={{ display: "flex", flexWrap: "wrap", gap: 9, marginTop: 11 }}>
-        {children}
-      </div>
-    </div>
-  );
-}
-
-function SingleChips({
-  options,
-  value,
-  onPick,
-}: {
-  options: Opt[];
-  value: string;
-  onPick: (v: string) => void;
-}) {
-  return (
-    <>
-      {options.map((o) => (
-        <Chip key={o.value} on={value === o.value} onClick={() => onPick(o.value)}>
-          {o.label}
-        </Chip>
-      ))}
-    </>
-  );
-}
-
-function MultiChips({
-  options,
-  values,
-  onToggle,
-}: {
-  options: Opt[];
-  values: string[];
-  onToggle: (v: string) => void;
-}) {
-  return (
-    <>
-      {options.map((o) => (
-        <Chip key={o.value} on={values.includes(o.value)} onClick={() => onToggle(o.value)}>
-          {o.label}
-        </Chip>
-      ))}
-    </>
-  );
-}
-
-function SwitchRow({
-  label,
-  on,
-  onChange,
-  divider,
-}: {
-  label: string;
-  on: boolean;
-  onChange: (v: boolean) => void;
-  divider?: boolean;
-}) {
-  return (
-    <div
-      onClick={() => onChange(!on)}
-      style={{
-        display: "flex",
-        alignItems: "center",
-        padding: "15px 16px",
-        cursor: "pointer",
-        borderTop: divider ? "1px solid var(--line)" : "none",
-      }}
-    >
-      <div style={{ flex: 1, font: "500 15px var(--ip-sans), sans-serif", color: "var(--ink)" }}>
-        {label}
-      </div>
-      <div onClick={(e) => e.stopPropagation()}>
-        <Switch on={on} onChange={onChange} />
-      </div>
+    <div className="mt-4">
+      <div className="eyebrow mb-2">{label}</div>
+      {children}
     </div>
   );
 }
@@ -118,11 +37,9 @@ function Slider({
 }) {
   return (
     <div>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-        <span style={{ font: "600 13px var(--ip-sans), sans-serif", color: "var(--ink)" }}>
-          {label}
-        </span>
-        <span className="mono" style={{ font: "600 16px var(--ip-mono), monospace", color: "var(--tl)" }}>
+      <div className="flex items-baseline justify-between">
+        <span className="text-sm font-medium text-[--color-ink]">{label}</span>
+        <span className="font-mono text-sm font-semibold text-[--color-pine]">
           {value} {unit}
         </span>
       </div>
@@ -132,7 +49,8 @@ function Slider({
         max={max}
         value={value}
         onChange={(e) => onChange(Number(e.target.value))}
-        style={{ width: "100%", marginTop: 10, accentColor: "var(--tl)", height: 6 }}
+        className="mt-2.5 w-full"
+        style={{ accentColor: "var(--color-pine)", height: 6 }}
       />
     </div>
   );
@@ -148,130 +66,110 @@ export default function RiskStep({ questionnaire, setQuestionnaire }: Questionna
     return arr.includes(v) ? arr.filter((x) => x !== v) : [...arr, v];
   }
 
-  return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
-      <div style={{ font: "400 14px var(--ip-sans), sans-serif", color: "var(--muted)", marginTop: -2 }}>
-        Tap all that apply — large targets, minimal typing.
-      </div>
+  const switches: { label: string; key: keyof OralRiskFactors; on: boolean }[] = [
+    { label: "Tobacco added to paan / quid", key: "paanTobaccoAdded", on: rf.paanTobaccoAdded },
+    { label: "Family history of oral cancer", key: "familyHistory", on: rf.familyHistory },
+    { label: "Sharp tooth / ill-fitting denture", key: "chronicTrauma", on: rf.chronicTrauma },
+  ];
 
-      {/* Smokeless tobacco */}
-      <Section title="Smokeless tobacco">
-        <SingleChips
+  return (
+    <div className="space-y-4">
+      <StepIntro>Record the patient&rsquo;s habits — these feed the live triage above.</StepIntro>
+
+      <Section title="Smokeless tobacco / areca">
+        <SegControl
           options={HABIT_STATUS_OPTIONS}
           value={rf.smokelessStatus}
-          onPick={(v) => patch({ smokelessStatus: v as OralRiskFactors["smokelessStatus"] })}
+          onChange={(v) => patch({ smokelessStatus: v as OralRiskFactors["smokelessStatus"] })}
+          ariaLabel="Smokeless tobacco use"
         />
+        {rf.smokelessStatus !== "never" ? (
+          <SubField label="Type">
+            <PickGroup
+              options={SMOKELESS_TYPE_OPTIONS}
+              values={rf.smokelessType}
+              onToggle={(v) =>
+                patch({
+                  smokelessType: toggle(
+                    rf.smokelessType,
+                    v as OralRiskFactors["smokelessType"][number],
+                  ),
+                })
+              }
+            />
+          </SubField>
+        ) : null}
+        {rf.smokelessStatus === "current" ? (
+          <SubField label="Quid-parking site">
+            <ChoiceGroup
+              options={QUID_SITE_OPTIONS}
+              value={rf.quidSite ?? ""}
+              onChange={(v) => patch({ quidSite: v as OralRiskFactors["quidSite"] })}
+            />
+          </SubField>
+        ) : null}
       </Section>
-      {rf.smokelessStatus !== "never" && (
-        <Section title="Smokeless type">
-          <MultiChips
-            options={SMOKELESS_TYPE_OPTIONS}
-            values={rf.smokelessType}
-            onToggle={(v) =>
-              patch({
-                smokelessType: toggle(
-                  rf.smokelessType,
-                  v as OralRiskFactors["smokelessType"][number],
-                ),
-              })
-            }
-          />
-        </Section>
-      )}
-      {rf.smokelessStatus === "current" && (
-        <Section title="Quid-parking site">
-          <SingleChips
-            options={QUID_SITE_OPTIONS}
-            value={rf.quidSite ?? ""}
-            onPick={(v) => patch({ quidSite: v as OralRiskFactors["quidSite"] })}
-          />
-        </Section>
-      )}
 
-      {/* Smoking */}
       <Section title="Smoking">
-        <SingleChips
+        <SegControl
           options={HABIT_STATUS_OPTIONS}
           value={rf.smokedStatus}
-          onPick={(v) => patch({ smokedStatus: v as OralRiskFactors["smokedStatus"] })}
+          onChange={(v) => patch({ smokedStatus: v as OralRiskFactors["smokedStatus"] })}
+          ariaLabel="Smoking"
         />
+        {rf.smokedStatus !== "never" ? (
+          <SubField label="Type">
+            <PickGroup
+              options={SMOKED_TYPE_OPTIONS}
+              values={rf.smokedType}
+              onToggle={(v) =>
+                patch({
+                  smokedType: toggle(
+                    rf.smokedType,
+                    v as OralRiskFactors["smokedType"][number],
+                  ),
+                })
+              }
+            />
+          </SubField>
+        ) : null}
+        {rf.smokedStatus === "current" ? (
+          <div className="mt-5 space-y-5 border-t border-[--color-rule] pt-5">
+            <Slider label="Years of use" value={rf.smokedYears ?? 0} max={50} unit="yrs" onChange={(v) => patch({ smokedYears: v })} />
+            <Slider label="Quantity per day" value={rf.smokedPerDay ?? 0} max={40} unit="/ day" onChange={(v) => patch({ smokedPerDay: v })} />
+          </div>
+        ) : null}
       </Section>
-      {rf.smokedStatus !== "never" && (
-        <Section title="Smoked type">
-          <MultiChips
-            options={SMOKED_TYPE_OPTIONS}
-            values={rf.smokedType}
-            onToggle={(v) =>
-              patch({
-                smokedType: toggle(
-                  rf.smokedType,
-                  v as OralRiskFactors["smokedType"][number],
-                ),
-              })
-            }
+
+      <div className="grid gap-4 md:grid-cols-2">
+        <Section title="Areca nut / paan">
+          <SegControl
+            options={PAAN_OPTIONS}
+            value={rf.paan}
+            onChange={(v) => patch({ paan: v as OralRiskFactors["paan"] })}
+            ariaLabel="Areca / paan"
           />
         </Section>
-      )}
-      {rf.smokedStatus === "current" && (
-        <div
-          className="card"
-          style={{ padding: 18, display: "flex", flexDirection: "column", gap: 20 }}
-        >
-          <Slider
-            label="Years of use"
-            value={rf.smokedYears ?? 0}
-            max={50}
-            unit="yrs"
-            onChange={(v) => patch({ smokedYears: v })}
+        <Section title="Alcohol">
+          <SegControl
+            options={ALCOHOL_OPTIONS}
+            value={rf.alcohol}
+            onChange={(v) => patch({ alcohol: v as OralRiskFactors["alcohol"] })}
+            ariaLabel="Alcohol"
           />
-          <Slider
-            label="Quantity per day"
-            value={rf.smokedPerDay ?? 0}
-            max={40}
-            unit="/ day"
-            onChange={(v) => patch({ smokedPerDay: v })}
-          />
-        </div>
-      )}
-
-      {/* Areca / paan */}
-      <Section title="Areca nut / paan">
-        <SingleChips
-          options={PAAN_OPTIONS}
-          value={rf.paan}
-          onPick={(v) => patch({ paan: v as OralRiskFactors["paan"] })}
-        />
-      </Section>
-
-      {/* Alcohol */}
-      <Section title="Alcohol">
-        <SingleChips
-          options={ALCOHOL_OPTIONS}
-          value={rf.alcohol}
-          onPick={(v) => patch({ alcohol: v as OralRiskFactors["alcohol"] })}
-        />
-      </Section>
-
-      {/* Toggles */}
-      <div className="card" style={{ overflow: "hidden", padding: 0 }}>
-        <SwitchRow
-          label="Tobacco added to paan / quid"
-          on={rf.paanTobaccoAdded}
-          onChange={(v) => patch({ paanTobaccoAdded: v })}
-        />
-        <SwitchRow
-          divider
-          label="Family history of oral cancer"
-          on={rf.familyHistory}
-          onChange={(v) => patch({ familyHistory: v })}
-        />
-        <SwitchRow
-          divider
-          label="Sharp tooth / ill-fitting denture"
-          on={rf.chronicTrauma}
-          onChange={(v) => patch({ chronicTrauma: v })}
-        />
+        </Section>
       </div>
+
+      <Section title="Other factors">
+        <div className="-my-1.5 divide-y divide-[--color-rule]">
+          {switches.map((s) => (
+            <div key={s.key} className="flex items-center py-3.5">
+              <span className="flex-1 text-[15px] text-[--color-ink]">{s.label}</span>
+              <Switch on={s.on} onChange={(v) => patch({ [s.key]: v } as Partial<OralRiskFactors>)} />
+            </div>
+          ))}
+        </div>
+      </Section>
     </div>
   );
 }

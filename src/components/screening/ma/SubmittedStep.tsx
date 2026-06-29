@@ -1,19 +1,9 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { BandPill } from "@/components/screening/primitives";
 import type { Band } from "@/lib/screening";
 import type { SelectedPatient } from "./types";
-
-const BAND_LABEL: Record<Band, string> = {
-  high: "High",
-  moderate: "Moderate",
-  low: "Low",
-};
-const BAND_VARS: Record<Band, { bg: string; bd: string; fg: string }> = {
-  high: { bg: "var(--hi-bg)", bd: "var(--hi-bd)", fg: "var(--hi-fg)" },
-  moderate: { bg: "var(--md-bg)", bd: "var(--md-bd)", fg: "var(--md-fg)" },
-  low: { bg: "var(--lo-bg)", bd: "var(--lo-bd)", fg: "var(--lo-fg)" },
-};
 
 export default function SubmittedStep({
   patient,
@@ -27,82 +17,32 @@ export default function SubmittedStep({
   onNew: () => void;
 }) {
   const router = useRouter();
-  const v = BAND_VARS[band];
 
   return (
-    <div
-      style={{
-        height: "100%",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        textAlign: "center",
-        padding: 32,
-        background: "var(--screen)",
-      }}
-    >
-      <div
-        style={{
-          width: 88,
-          height: 88,
-          borderRadius: "50%",
-          background: "var(--tl-50)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          border: "1.5px solid var(--tl-100)",
-        }}
-      >
-        <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="var(--tl)" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+    <div className="flex flex-col items-center py-12 text-center">
+      <div className="flex h-20 w-20 items-center justify-center rounded-full border border-[--color-pine] bg-pine-soft">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--color-pine)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
           <polyline points="20 6 9 17 4 12" />
         </svg>
       </div>
-      <div style={{ font: "700 23px var(--ip-sans), sans-serif", color: "var(--ink)", marginTop: 22 }}>
-        Sent to doctor&rsquo;s queue
-      </div>
-      <div
-        style={{
-          font: "400 14px var(--ip-sans), sans-serif",
-          color: "var(--muted)",
-          marginTop: 6,
-          lineHeight: 1.5,
-          maxWidth: 280,
-        }}
-      >
-        Screening for{" "}
-        <span style={{ fontWeight: 600, color: "var(--ink)" }}>{patient.name}</span> has been
-        submitted for review.
+      <h2 className="font-display mt-6 text-2xl font-medium">Sent to the doctor&rsquo;s queue</h2>
+      <p className="mt-2 max-w-xs text-sm text-[--color-muted]">
+        Screening for <span className="font-medium text-[--color-ink]">{patient.name}</span> has
+        been submitted for review.
+      </p>
+
+      <div className="mt-5 flex items-center gap-2">
+        <BandPill band={band} />
+        <span className="font-mono text-xs text-[--color-muted]">score {score}</span>
       </div>
 
-      <div
-        style={{
-          display: "inline-flex",
-          alignItems: "center",
-          gap: 9,
-          marginTop: 18,
-          padding: "9px 15px",
-          borderRadius: 11,
-          background: v.bg,
-          border: `1px solid ${v.bd}`,
-        }}
-      >
-        <span style={{ font: "600 13px var(--ip-sans), sans-serif", color: v.fg }}>
-          {BAND_LABEL[band]} risk · score {score}
-        </span>
-      </div>
-
-      <div style={{ width: "100%", maxWidth: 300, marginTop: 34, display: "flex", flexDirection: "column", gap: 11 }}>
-        <button
-          type="button"
-          className="btn-primary"
-          onClick={onNew}
-        >
+      <div className="mt-9 flex w-full max-w-xs flex-col gap-2.5">
+        <button type="button" className="btn-primary justify-center" onClick={onNew}>
           Start new screening
         </button>
         <button
           type="button"
-          className="btn-ghost"
+          className="btn-ghost justify-center"
           onClick={() => router.push("/screening/queue")}
         >
           Open doctor&rsquo;s queue

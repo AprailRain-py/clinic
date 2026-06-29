@@ -22,7 +22,7 @@ export default function ScreeningHomePage() {
           href="/screening/new"
           className="card group flex flex-col gap-4 p-6 transition hover:border-[--color-pine]"
         >
-          <span className="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-[--color-pine] text-[--color-paper]">
+          <span className="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-pine text-[--color-paper]">
             <svg viewBox="0 0 24 24" fill="none" className="h-5 w-5">
               <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
             </svg>
@@ -46,7 +46,7 @@ export default function ScreeningHomePage() {
           href="/screening/queue"
           className="card group flex flex-col gap-4 p-6 transition hover:border-[--color-pine]"
         >
-          <span className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-[--color-rule] bg-[--color-card] text-[--color-pine]">
+          <span className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-[--color-rule] bg-card text-[--color-pine]">
             <svg viewBox="0 0 24 24" fill="none" className="h-5 w-5">
               <path d="M4 6h16M4 12h16M4 18h10" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
             </svg>

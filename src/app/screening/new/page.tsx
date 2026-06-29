@@ -4,6 +4,7 @@ import { Suspense, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { AppShell } from "@/components/AppShell";
 import { PrimaryButton, ProgressBar } from "@/components/screening/primitives";
+import { LiveTriageBadge } from "@/components/screening/ma/StepKit";
 import CaptureStep from "@/components/screening/ma/CaptureStep";
 import ConsentStep from "@/components/screening/ma/ConsentStep";
 import ExamStep from "@/components/screening/ma/ExamStep";
@@ -214,6 +215,14 @@ function NewScreeningFlow() {
           <div className="mt-3">
             <ProgressBar step={step} total={TOTAL} />
           </div>
+          {result && step >= 3 && step <= 7 ? (
+            <div className="mt-4">
+              <LiveTriageBadge
+                band={result.band}
+                topReason={result.firedReasons.find((r) => r.tier)?.reason}
+              />
+            </div>
+          ) : null}
         </div>
 
         {/* body */}
@@ -240,7 +249,14 @@ function NewScreeningFlow() {
           )
         ) : (
           <div>
-            {step === 1 && <PatientStep selected={patient} onSelect={setPatient} />}
+            {step === 1 && (
+              <PatientStep
+                onPicked={(p) => {
+                  setPatient(p);
+                  setStep(2);
+                }}
+              />
+            )}
             {step === 2 && patient && (
               <ConsentStep
                 patient={patient}
@@ -273,8 +289,8 @@ function NewScreeningFlow() {
           </div>
         )}
 
-        {/* footer (the capture step renders its own controls) */}
-        {step !== 6 && !prefilling && (
+        {/* footer (step 1 advances on patient pick; capture renders its own controls) */}
+        {step !== 1 && step !== 6 && !prefilling && (
           <div className="mt-6">
             {error && (
               <div className="mb-3 text-sm" style={{ color: "var(--hi-fg)" }}>
