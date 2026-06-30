@@ -67,6 +67,7 @@ export function PhotoGrid({
                 alignItems: "flex-end",
               }}
             >
+              {/* eslint-disable-next-line @next/next/no-img-element -- private, API-streamed thumbnail; not an optimizable static asset */}
               <img
                 src={screeningImageUrl(screeningId, img.id)}
                 alt={viewLabel(img.viewType)}
@@ -152,6 +153,7 @@ export function PhotoGrid({
               justifyContent: "center",
             }}
           >
+            {/* eslint-disable-next-line @next/next/no-img-element -- full-screen private image viewer, not an LCP asset */}
             <img
               src={screeningImageUrl(screeningId, active.id)}
               alt={viewLabel(active.viewType)}

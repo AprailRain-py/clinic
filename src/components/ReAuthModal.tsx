@@ -184,7 +184,7 @@ export function ReAuthModal({ mode, onClose }: ReAuthModalProps) {
               onClick={onClose}
               data-testid="reauth-retry"
             >
-              I've signed in
+              I&apos;ve signed in
             </button>
           ) : null}
         </div>

@@ -166,9 +166,6 @@ export default function CaptureStep({
     img.src = url;
   }
 
-  const lqColor =
-    liveState === "ok" ? "#a6f4c5" : liveState === "blurry" ? "#fca5a5" : "#fedf89";
-
   return (
     <div style={{ flex: 1, display: "flex", flexDirection: "column", minHeight: 0, background: "#0d1716" }}>
       {/* guided hint card */}

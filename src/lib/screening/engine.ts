@@ -19,7 +19,6 @@ import type {
 import {
   ORAL_RULESET_V1,
   type Band,
-  type FactorConfig,
   type OralRuleset,
   type OralRulesetParams,
   type Tier,
