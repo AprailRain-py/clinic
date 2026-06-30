@@ -18,6 +18,16 @@ function labelOf(
 
 type Row = { label: string; value: string };
 
+// Duration value is stored in the unit the MA chose (years or months) — render
+// it with that unit so "10 months" never reads as "10 yrs".
+function durationLabel(
+  value: number | undefined,
+  unit: string | undefined,
+): string | null {
+  if (!value) return null;
+  return `${value} ${unit === "months" ? "mo" : "yrs"}`;
+}
+
 function riskRows(q: OralQuestionnaire): Row[] {
   const rf = q.riskFactors;
   const rows: Row[] = [];
@@ -25,13 +35,15 @@ function riskRows(q: OralQuestionnaire): Row[] {
   if (rf.smokedStatus !== "never") {
     const parts: string[] = [labelOf(HABIT_STATUS_OPTIONS, rf.smokedStatus)];
     if (rf.smokedPerDay) parts.push(`${rf.smokedPerDay}/day`);
-    if (rf.smokedYears) parts.push(`${rf.smokedYears} yrs`);
+    const d = durationLabel(rf.smokedYears, rf.smokedUseUnit);
+    if (d) parts.push(d);
     rows.push({ label: "Smoking", value: parts.join(" · ") });
   }
   if (rf.smokelessStatus !== "never") {
     const parts: string[] = [labelOf(HABIT_STATUS_OPTIONS, rf.smokelessStatus)];
     if (rf.smokelessPerDay) parts.push(`${rf.smokelessPerDay}/day`);
-    if (rf.smokelessYears) parts.push(`${rf.smokelessYears} yrs`);
+    const d = durationLabel(rf.smokelessYears, rf.smokelessUseUnit);
+    if (d) parts.push(d);
     rows.push({ label: "Smokeless tobacco", value: parts.join(" · ") });
   }
   if (rf.paan !== "never") {

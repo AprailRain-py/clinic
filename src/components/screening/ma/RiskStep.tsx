@@ -40,9 +40,9 @@ function SubField({
   );
 }
 
-function numDigits(v: string): number | undefined {
+function numDigits(v: string, max: number): number | undefined {
   const d = v.replace(/[^0-9]/g, "");
-  return d === "" ? undefined : Number(d);
+  return d === "" ? undefined : Math.min(max, Number(d));
 }
 
 // Per-day amount + duration (with a Years/Months unit so short-term use is
@@ -73,7 +73,7 @@ function HabitDetail({
           inputMode="numeric"
           value={perDay ?? ""}
           placeholder="e.g. 5"
-          onChange={(e) => onPerDay(numDigits(e.target.value))}
+          onChange={(e) => onPerDay(numDigits(e.target.value, 100))}
         />
       </SubField>
       <SubField label="How long used" optional>
@@ -84,7 +84,7 @@ function HabitDetail({
             inputMode="numeric"
             value={duration ?? ""}
             placeholder="6"
-            onChange={(e) => onDuration(numDigits(e.target.value))}
+            onChange={(e) => onDuration(numDigits(e.target.value, 600))}
           />
           <SegControl options={UNIT_OPTS} value={unit ?? "years"} onChange={onUnit} ariaLabel="Duration unit" />
         </div>

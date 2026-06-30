@@ -63,7 +63,8 @@ export default function SymptomsStep({
                       onChange={(e) => {
                         const digits = e.target.value.replace(/[^0-9]/g, "");
                         setSymptoms({
-                          mouthOpeningMm: digits === "" ? undefined : Number(digits),
+                          mouthOpeningMm:
+                            digits === "" ? undefined : Math.min(60, Number(digits)),
                         });
                       }}
                     />

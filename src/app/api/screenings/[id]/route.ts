@@ -73,9 +73,13 @@ export async function PATCH(
 
   const { id } = await params;
 
-  // Ownership check + grab the patient age the engine needs.
+  // Ownership check + grab the patient age the engine needs + current status.
   const [owned] = await db
-    .select({ id: screenings.id, age: patients.age })
+    .select({
+      id: screenings.id,
+      age: patients.age,
+      status: screenings.status,
+    })
     .from(screenings)
     .innerJoin(patients, eq(screenings.patientId, patients.id))
     .where(and(eq(screenings.id, id), eq(screenings.userId, session.user.id)))
@@ -85,6 +89,15 @@ export async function PATCH(
     return NextResponse.json(
       { error: "not_found" },
       { status: 404, headers: NO_STORE_HEADERS },
+    );
+  }
+
+  // Only a draft can be finalized — re-finalizing would recompute triage and
+  // bounce an already-reviewed case back into the pending queue.
+  if (owned.status !== "draft") {
+    return NextResponse.json(
+      { error: "already_final" },
+      { status: 409, headers: NO_STORE_HEADERS },
     );
   }
 

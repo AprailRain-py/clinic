@@ -79,7 +79,9 @@ export default function ExamStep({ questionnaire, setQuestionnaire }: Questionna
                   placeholder="12"
                   onChange={(e) => {
                     const digits = e.target.value.replace(/[^0-9]/g, "");
-                    patchLesion(idx, { sizeMm: digits === "" ? undefined : Number(digits) });
+                    patchLesion(idx, {
+                      sizeMm: digits === "" ? undefined : Math.min(120, Number(digits)),
+                    });
                   }}
                 />
               </Field>

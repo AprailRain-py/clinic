@@ -259,6 +259,15 @@ function NewScreeningFlow() {
               {step === 1 && (
                 <PatientStep
                   onPicked={(p) => {
+                    // If a DIFFERENT patient is picked after a draft was already
+                    // started, discard that draft + answers — otherwise the new
+                    // patient's photos/answers would land on the old patient's
+                    // screening row. Re-picking the same patient keeps progress.
+                    if (patient && patient.patientId !== p.patientId) {
+                      setScreeningId(null);
+                      setQuestionnaire(initialQuestionnaire());
+                      setCaptured({});
+                    }
                     setPatient(p);
                     setStep(2);
                   }}

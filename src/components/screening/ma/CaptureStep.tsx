@@ -7,7 +7,7 @@ import type { CaptureView } from "@/lib/screening/oral-form";
 import { analyzeFrame } from "./helpers";
 import type { CapturedMap, QualityResult } from "./types";
 
-type Pending = { blob: Blob; quality: QualityResult; thumbUrl: string };
+type Pending = { view: CaptureView; blob: Blob; quality: QualityResult; thumbUrl: string };
 
 function makeThumb(source: HTMLCanvasElement | HTMLVideoElement): string {
   const sw = source instanceof HTMLVideoElement ? source.videoWidth : source.width;
@@ -136,7 +136,7 @@ export default function CaptureStep({
         if (quality.pass) {
           void doUpload(view, blob, quality, thumbUrl);
         } else {
-          setPending({ blob, quality, thumbUrl });
+          setPending({ view, blob, quality, thumbUrl });
         }
       },
       "image/jpeg",
@@ -375,7 +375,7 @@ export default function CaptureStep({
               onClick={() => {
                 const p = pending;
                 setPending(null);
-                void doUpload(view, p.blob, p.quality, p.thumbUrl);
+                void doUpload(p.view, p.blob, p.quality, p.thumbUrl);
               }}
               style={{ background: "none", border: "none", font: "600 12px var(--ip-sans), sans-serif", color: "var(--muted)", cursor: "pointer", textDecoration: "underline" }}
             >

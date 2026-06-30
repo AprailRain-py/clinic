@@ -163,6 +163,33 @@ export async function POST(
     );
   }
 
+  // Re-capture replaces: drop any prior photo for this same view so we don't
+  // accumulate duplicate images per view (and free the old object).
+  const priorForView = await db
+    .select({ id: screeningImages.id, storageKey: screeningImages.storageKey })
+    .from(screeningImages)
+    .where(
+      and(
+        eq(screeningImages.screeningId, screeningId),
+        eq(screeningImages.userId, session.user.id),
+        eq(screeningImages.viewType, viewType),
+      ),
+    );
+  if (priorForView.length > 0) {
+    await Promise.all(
+      priorForView.map((p) => getStorage().delete(p.storageKey).catch(() => {})),
+    );
+    await db
+      .delete(screeningImages)
+      .where(
+        and(
+          eq(screeningImages.screeningId, screeningId),
+          eq(screeningImages.userId, session.user.id),
+          eq(screeningImages.viewType, viewType),
+        ),
+      );
+  }
+
   const [{ c: existing }] = await db
     .select({ c: count() })
     .from(screeningImages)
