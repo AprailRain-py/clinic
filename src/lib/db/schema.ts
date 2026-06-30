@@ -23,6 +23,8 @@ export const users = pgTable("user", {
   email: text("email").notNull().unique(),
   emailVerified: timestamp("emailVerified", { mode: "date" }),
   image: text("image"),
+  // Clinic account role: "doctor" (owner/reviewer) | "assistant" (MA who captures).
+  role: text("role").notNull().default("doctor"),
 });
 
 export const accounts = pgTable(
@@ -203,11 +205,105 @@ export const visitImages = pgTable(
   }),
 );
 
+export const screenings = pgTable(
+  "screenings",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => createId()),
+    patientId: text("patient_id")
+      .notNull()
+      .references(() => patients.id, { onDelete: "cascade" }),
+    // Denormalized owning clinic account so the review queue can scope without
+    // JOINing (mirrors how visit_images denormalizes userId).
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    // The MA/assistant who captured this screening; null if they later leave.
+    capturedByUserId: text("captured_by_user_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    // "oral" | "skin" (skin pathway added later).
+    pathway: text("pathway").notNull().default("oral"),
+    screeningDate: text("screening_date").notNull(),
+    campId: text("camp_id"),
+    // JSON-serialized answers: intake extras + risk factors + symptoms +
+    // exam lesions + consent.
+    questionnaire: text("questionnaire").notNull(),
+    riskScore: integer("risk_score"),
+    // "low" | "moderate" | "high"
+    riskBand: text("risk_band"),
+    // "RED" | "AMBER" | "YELLOW" | "GREEN"
+    triageTier: text("triage_tier"),
+    // JSON array of {id,tier,reason}
+    firedReasons: text("fired_reasons"),
+    rulesetVersion: text("ruleset_version"),
+    // "pending" | "reviewed" | "referred" | "cleared"
+    reviewStatus: text("review_status").notNull().default("pending"),
+    reviewedByUserId: text("reviewed_by_user_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    doctorNotes: text("doctor_notes"),
+    // JSON
+    referral: text("referral"),
+    outcome: text("outcome"),
+    outcomeNotes: text("outcome_notes"),
+    outcomeDate: text("outcome_date"),
+    // JSON, reserved for future shadow-mode AI. NOT shown clinically.
+    aiShadow: text("ai_shadow"),
+    // "draft" | "final" (mirrors visits' draft/final lifecycle).
+    status: text("status").notNull().default("draft"),
+    createdAt: bigint("created_at", { mode: "number" })
+      .notNull()
+      .$defaultFn(() => Date.now()),
+  },
+  (t) => ({
+    reviewStatusIdx: index("screenings_review_status_idx").on(t.reviewStatus),
+    userIdx: index("screenings_user_idx").on(t.userId),
+    patientIdx: index("screenings_patient_idx").on(t.patientId),
+  }),
+);
+
+export const screeningImages = pgTable(
+  "screening_images",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => createId()),
+    screeningId: text("screening_id")
+      .notNull()
+      .references(() => screenings.id, { onDelete: "cascade" }),
+    // Denormalized so every image query can scope by doctor without JOINing.
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    // e.g. "anterior_open", "buccal_right", "buccal_left", "tongue_dorsum",
+    // "tongue_lateral", "ventral_floor", "palate", "lesion_closeup",
+    // "quid_site_closeup".
+    viewType: text("view_type").notNull(),
+    storageKey: text("storage_key").notNull(),
+    mimeType: text("mime_type").notNull(),
+    sizeBytes: integer("size_bytes").notNull(),
+    // JSON {pass, blur, brightness, glare}
+    qualityCheck: text("quality_check"),
+    position: integer("position").notNull().default(0),
+    createdAt: bigint("created_at", { mode: "number" })
+      .notNull()
+      .$defaultFn(() => Date.now()),
+  },
+  (t) => ({
+    screeningIdx: index("screening_images_screening_idx").on(t.screeningId),
+    userIdx: index("screening_images_user_idx").on(t.userId),
+  }),
+);
+
 export type UserRow = typeof users.$inferSelect;
 export type PatientRow = typeof patients.$inferSelect;
 export type VisitRow = typeof visits.$inferSelect;
 export type MedicineRow = typeof medicines.$inferSelect;
 export type DoctorRow = typeof doctors.$inferSelect;
 export type VisitImageRow = typeof visitImages.$inferSelect;
+export type ScreeningRow = typeof screenings.$inferSelect;
+export type ScreeningImageRow = typeof screeningImages.$inferSelect;
 
 export { sql };

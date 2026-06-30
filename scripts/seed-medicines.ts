@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { createId } from "@paralleldrive/cuid2";

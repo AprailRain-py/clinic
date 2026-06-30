@@ -127,7 +127,7 @@ export function SessionGuard() {
           lineHeight: 1.4,
         }}
       >
-        You'll be locked in 60 seconds — move the mouse to stay signed in.
+        You&apos;ll be locked in 60 seconds — move the mouse to stay signed in.
       </div>
     );
   }

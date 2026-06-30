@@ -69,7 +69,6 @@ export function NewVisitEditor({
     if (doc.items.length > 0 && !draftVisitId && !draftInFlightRef.current) {
       ensureDraft().catch((err) => {
         // Don't surface to the user yet — they can still save; we'll retry on save.
-        // eslint-disable-next-line no-console
         console.warn("draft creation failed, will retry on save", err);
       });
     }
@@ -321,7 +320,7 @@ function AutosaveIndicator({
         className="font-mono text-[11px] text-[--color-muted]"
         title="Autosave failed; manual save still works."
       >
-        Couldn't autosave — your work is safe; try saving manually.
+        Couldn&apos;t autosave — your work is safe; try saving manually.
       </span>
     );
   }
@@ -372,7 +371,7 @@ function DraftPhotoAttacher({
         </span>
         <span className="max-w-md font-mono text-[11px] leading-relaxed text-[--color-muted]">
           Photos appear here after you add the first medicine or click to start
-          attaching. They'll be saved with this visit.
+          attaching. They&apos;ll be saved with this visit.
         </span>
       </button>
     </section>

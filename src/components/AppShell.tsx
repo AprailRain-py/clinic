@@ -29,6 +29,7 @@ export function AppShell({
     <div className="relative min-h-screen">
       <header className="relative z-10 border-b border-[--color-rule] bg-[--color-paper]/80 backdrop-blur-sm">
         <div className="container-shell flex items-center justify-between py-5">
+          <div className="flex items-center gap-1 md:gap-5">
           <Link href="/" className="group flex items-center gap-3">
             <span className="relative inline-flex h-9 w-9 items-center justify-center rounded-full bg-[--color-ink] text-[--color-paper]">
               <svg viewBox="0 0 24 24" fill="none" className="h-4 w-4">
@@ -45,6 +46,21 @@ export function AppShell({
               </span>
             </div>
           </Link>
+            <nav className="flex items-center gap-0.5 sm:gap-1">
+              <Link
+                href="/"
+                className="rounded-full px-2.5 py-1.5 text-sm text-[--color-muted] transition hover:bg-card hover:text-[--color-ink]"
+              >
+                Patients
+              </Link>
+              <Link
+                href="/screening"
+                className="rounded-full px-2.5 py-1.5 text-sm text-[--color-muted] transition hover:bg-card hover:text-[--color-ink]"
+              >
+                Screening
+              </Link>
+            </nav>
+          </div>
 
           <div className="hidden items-center gap-6 md:flex">
             <div className="text-right leading-tight">
@@ -55,7 +71,7 @@ export function AppShell({
             <Link
               href="/settings/profile"
               title="Clinic & credentials"
-              className="group flex items-center gap-3 rounded-full px-1 py-1 transition hover:bg-[--color-card]/60 focus:bg-[--color-card]/60 focus:outline-none"
+              className="group flex items-center gap-3 rounded-full px-1 py-1 transition hover:bg-card/60 focus:bg-card/60 focus:outline-none"
             >
               <div className="hidden text-right leading-tight md:block">
                 <div className="eyebrow">Attending</div>
@@ -63,7 +79,7 @@ export function AppShell({
                   {user?.name ?? "Dev Doctor"}
                 </div>
               </div>
-              <span className="relative inline-flex h-10 w-10 items-center justify-center rounded-full border border-[--color-rule] bg-[--color-card] font-mono text-xs font-semibold text-[--color-pine] transition group-hover:border-[--color-pine]">
+              <span className="relative inline-flex h-10 w-10 items-center justify-center rounded-full border border-[--color-rule] bg-card font-mono text-xs font-semibold text-[--color-pine] transition group-hover:border-[--color-pine]">
                 {initials || "DD"}
                 <span
                   aria-hidden="true"
